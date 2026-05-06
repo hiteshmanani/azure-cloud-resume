@@ -12,3 +12,8 @@ Thumbs.db
 
 # Editor settings
 .vscode/
+
+# Hugo generated output
+frontend/public/
+frontend/resources/_gen/
+frontend/.hugo_build.lock
