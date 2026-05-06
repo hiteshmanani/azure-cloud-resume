@@ -17,3 +17,6 @@ Thumbs.db
 frontend/public/
 frontend/resources/_gen/
 frontend/.hugo_build.lock
+
+# Node / Hugo theme dependencies
+frontend/node_modules/
