@@ -246,3 +246,4 @@ If Hugo produces errors, explain the likely cause, the minimal fix, and how to v
 Do not optimize for speed at the cost of understanding.
 
 The user wants a working portfolio website, but the deeper goal is to understand and explain the Cloud Resume Challenge end to end in interviews.
+The user wants a working portfolio website, but the deeper goal is to understand and explain the Cloud Resume Challenge end to end in interviews.
