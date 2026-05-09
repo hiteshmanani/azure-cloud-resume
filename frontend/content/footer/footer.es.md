@@ -1,7 +1,7 @@
 +++
 title =  "Footer"
 type = "footer"
-draft = false
+draft = true
 +++
 
 

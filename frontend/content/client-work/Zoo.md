@@ -1,7 +1,7 @@
 ---
 date: '2024-08-25T10:23:08+02:00' # date in which the content is created - defaults to "today"
 title: 'Zoo'
-draft: false # set to "true" if you want to hide the content 
+draft: true # hidden demo content
 
 link: "https://www.adrianmoreno.info" # optional URL to link the logo to
 

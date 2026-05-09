@@ -1,7 +1,7 @@
 ---
 title: "مدونة العرض التوضيحي"
 date: 2023-01-01
-draft: false
+draft: true
 ---
 
 مرحباً بكم في مدونة العرض التوضيحي. يمكنك تخصيص (أو إزالة) هذا القسم في ملف `_index.md` في مجلد `blog`. يمكنك [قراءة كيفية تنظيم المحتوى في Hugo](https://gohugo.io/content-management/page-bundles/) في الوثائق الرسمية.

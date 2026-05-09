@@ -1,7 +1,7 @@
 ---
 date: '2024-11-25T21:53:18+01:00' # date in which the content is created - defaults to "today"
 title: 'Graziella Nutella'
-draft: false # set to "true" if you want to hide the content 
+draft: true # hidden demo content
 
 name: "Nutting Hill" # place/city/country for the experience. Fill-in.
 position: "Nutcracker" # from-to, for example "2022-2024". Fill-in.

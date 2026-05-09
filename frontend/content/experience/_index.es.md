@@ -1,5 +1,6 @@
 ---
 title: Experiencia
+draft: true
 ---
 
 Aquí es donde puedes destacar un poco sobre tu experiencia. Años de experiencia total, especialización, etc.

@@ -1,7 +1,7 @@
 ---
 title: 'Advanced Hugo Sections'
 date: 2024-01-20T14:30:00+00:00
-draft: false
+draft: true
 tags: 
   - hugo
   - advanced

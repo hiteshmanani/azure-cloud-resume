@@ -1,5 +1,6 @@
 ---
 title: Experience
+description: "Experience across Azure cloud operations, AI platform delivery, product assurance, release readiness, and customer-facing implementation."
 button1_text: See on LinkedIn
 button1_url: https://www.linkedin.com/in/hiteshmanani/
 button1_icon: icon-linkedin

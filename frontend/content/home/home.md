@@ -2,6 +2,9 @@
 title =  "Home"
 type = "home"
 draft = false
+description = "Hitesh Manani's personal website and Azure Cloud Resume Challenge portfolio, focused on Azure cloud engineering, AI platform delivery, and customer-facing implementation."
+[build]
+render = "never"
 +++
 
 

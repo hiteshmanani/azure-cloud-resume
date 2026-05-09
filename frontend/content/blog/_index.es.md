@@ -1,7 +1,7 @@
 ---
 title: "Blog de Demostración"
 date: 2023-01-01
-draft: false
+draft: true
 ---
 
 Bienvenido al blog de demostración. Puedes personalizar (o eliminar) esta sección en el archivo `_index.md` de la carpeta `blog`. Puedes [leer sobre cómo organizar contenido en Hugo](https://gohugo.io/content-management/page-bundles/) en la documentación oficial.

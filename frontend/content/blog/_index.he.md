@@ -1,7 +1,7 @@
 ---
 title: "בלוג הדמו"
 date: 2023-01-01
-draft: false
+draft: true
 ---
 
 ברוכים הבאים לבלוג הדמו. תוכלו להתאים אישית (או להסיר) את החלק הזה בקובץ `_index.md` בתיקיית `blog`. תוכלו [לקרוא על איך לארגן תוכן ב-Hugo](https://gohugo.io/content-management/page-bundles/) בתיעוד הרשמי.

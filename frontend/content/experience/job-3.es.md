@@ -1,6 +1,6 @@
 ---
 date: 2024-12-01T00:00:00+01:00
-draft: false
+draft: true
 title: "Puesto #3"
 jobTitle: "Gerente General"
 company: "Translated Content"

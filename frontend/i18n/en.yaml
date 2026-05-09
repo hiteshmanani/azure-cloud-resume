@@ -8,7 +8,7 @@
 - id: "meta_author"
   translation: "Hitesh Manani"
 - id: "meta_image"
-  translation: "/img/general/og-image.jpg"
+  translation: "/img/og-img.png"
 
 ## Header
 
@@ -76,10 +76,10 @@
 
 ## Homepage head title
 - id: "head_title"
-  translation: "Hitesh Manani - Azure Engineer, Blogger, and Open Source Enthusiast"
+  translation: "Hitesh Manani - Azure Cloud and AI Platform Delivery"
 
 - id: "head_description"
-  translation: "Personal website and Azure Cloud Resume Challenge portfolio for Hitesh Manani."
+  translation: "Personal website and Azure Cloud Resume Challenge portfolio for Hitesh Manani, focused on Azure cloud engineering, AI platform delivery, and customer-facing implementation."
 
 ## Homepage showcase
 - id: "showcase_title"
@@ -246,7 +246,7 @@
 - id: "share_this_post"
   translation: "Share this post"
 - id: "share_on_twitter"
-  translation: "Share on Twitter"
+  translation: "Share on X"
 - id: "share_on_linkedin"
   translation: "Share on LinkedIn"
 - id: "share_on_facebook"
@@ -254,7 +254,7 @@
 - id: "share_via_email"
   translation: "Share via Email"
 - id: "share_twitter_label"
-  translation: "Twitter"
+  translation: "X"
 - id: "share_linkedin_label"
   translation: "LinkedIn"
 - id: "share_facebook_label"

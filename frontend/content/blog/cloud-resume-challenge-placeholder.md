@@ -3,6 +3,7 @@ title: "Building my Azure Cloud Resume Challenge"
 date: 2026-05-09
 draft: false
 type: "blog"
+description: "A working placeholder for Hitesh Manani's Azure Cloud Resume Challenge write-up, covering Hugo, Azure static hosting, serverless APIs, database storage, IaC, and CI/CD."
 tags:
   - azure
   - hugo

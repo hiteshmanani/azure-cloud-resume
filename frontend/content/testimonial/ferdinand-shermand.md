@@ -1,7 +1,7 @@
 ---
 date: '2024-11-25T21:30:46+01:00' # date in which the content is created - defaults to "today"
 title: 'Ferdinand Shermand'
-draft: false # set to "true" if you want to hide the content 
+draft: true # hidden demo content
 
 name: "Ferdinand Shermand" # place/city/country for the experience. Fill-in.
 position: "Butterfly collector" # from-to, for example "2022-2024". Fill-in.

@@ -1,7 +1,7 @@
 ---
 date: '2024-11-25T21:50:45+01:00' # date in which the content is created - defaults to "today"
 title: 'Dana Oneal'
-draft: false # set to "true" if you want to hide the content 
+draft: true # hidden demo content
 
 name: "International Interrogations" # place/city/country for the experience. Fill-in.
 position: "Internal Intern" # from-to, for example "2022-2024". Fill-in.

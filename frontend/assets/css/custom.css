@@ -50,6 +50,19 @@
   color: currentColor;
 }
 
+.social-sharing .share-button.share-twitter {
+  background: #000000 !important;
+  border-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.social-sharing .share-button.share-twitter:hover,
+.social-sharing .share-button.share-twitter:focus {
+  background: #1f1f1f !important;
+  border-color: #1f1f1f !important;
+  color: #ffffff !important;
+}
+
 @media (min-width: 992px) {
   .showcase-section {
     padding-top: 56px;
