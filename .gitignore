@@ -20,3 +20,8 @@ frontend/.hugo_build.lock
 
 # Node / Hugo theme dependencies
 frontend/node_modules/
+
+# Local project/agent working notes
+AGENTS.md
+TODO.md
+WORKING_NOTES.md

@@ -28,6 +28,10 @@
   height: auto;
 }
 
+body.page-now #main-content {
+  padding-top: 24px;
+}
+
 .experience .btn.btn-frameless,
 .experience-section .btn.btn-frameless {
   border: 1px solid #478079;
