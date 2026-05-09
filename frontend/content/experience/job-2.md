@@ -1,17 +1,20 @@
 ---
-date: 2023-12-01T00:00:00+01:00
+date: 2022-01-01T00:00:00+01:00
 draft: false
-title: "Job #2"
-jobTitle: "Chief Intern"
-company: "Internet Affairs Inc. "
-location: "Stavanger, Norway"
-duration: "2023-2024"
+title: "Bespin Global, an e& enterprise company"
+jobTitle: "Cloud Associate, Managed Services"
+company: "Bespin Global, an e& enterprise company"
+location: "Abu Dhabi, UAE"
+duration: "Earlier role"
+companyLogo: "images/experience/BespinGlobal-logo.jpg"
 
 ---
-## 2nd job: Chief Intern
+## Enterprise Azure managed services
 
-As Chief Intern at Internet Affairs Inc., I led several key initiatives that helped streamline our internal processes and boost productivity. Working closely with cross-functional teams, I developed and implemented an automated documentation system that reduced report generation time by 65% and improved accuracy by 40%.
+At Bespin Global, I worked across managed services for enterprise and public-sector Azure environments, supporting reliability, security, monitoring, incident response, backup and restore, disaster recovery, patching, cost management, and day-to-day cloud operations.
 
-During my internship, I spearheaded the company's first-ever "Innovation Lab" program, where I mentored junior interns and coordinated weekly brainstorming sessions. This initiative resulted in three patent-pending solutions and garnered attention from senior management. The program has since been adopted as a permanent fixture in the company's internship structure.
+The role strengthened my Azure fundamentals and operational discipline. I supported IaaS and PaaS workloads, recurring DR and backup/restore drills, alerting and monitoring workflows, incident escalation, RCA support, customer communication, and operational documentation.
 
-My most significant achievement was the successful implementation of a machine learning algorithm that optimized our resource allocation system. This project not only improved resource utilization by 35% but also led to my eventual promotion to CIO. I also actively participated in community outreach programs, organizing coding workshops for local high school students and contributing to the company's STEM education initiatives.
+I also built automation around Azure VM patching using Azure-native services such as Logic Apps, Event Hub, Azure Update Manager, Azure Resource Graph, and Managed Identity. The workflow helped start affected VMs, create pre-patch restore points or disk snapshots, generate post-patch reporting, and reduce manual workload by approximately 1.5 to 2.0 hours per patch cycle.
+
+Beyond implementation, I focused on safe operations: failure scopes, idempotency, concurrency controls to avoid ARM throttling, runbooks, SOPs, and repeatable service delivery practices.

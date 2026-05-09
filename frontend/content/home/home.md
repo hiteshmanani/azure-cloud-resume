@@ -33,6 +33,7 @@ draft = false
     title="Education" >}}
 
 {{< experience-section
+    sectionId="experience"
     title="Experience focus"
     intro_title="Cloud operations, AI delivery, and rollout readiness"
     intro_description="My work combines enterprise Azure operations, automation, product assurance, release readiness, and customer-facing implementation. The focus is practical delivery: systems that can be built, explained, shipped, supported, and improved."
@@ -42,4 +43,7 @@ draft = false
     button2_text="See on LinkedIn"
     button2_url="https://www.linkedin.com/in/hiteshmanani/"
     button2_icon="icon-linkedin"
+    button3_text="View Resume"
+    button3_url="/files/hitesh-resume.pdf"
+    button3_icon="icon-cloud-arrow-down"
 >}}

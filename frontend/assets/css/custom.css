@@ -1,3 +1,19 @@
+.showcase-section {
+  padding-top: 32px;
+}
+
+.showcase-section .profile-image {
+  display: flex;
+  justify-content: center;
+}
+
+.showcase-section .profile-image img {
+  max-width: min(78vw, 420px);
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
 .showcase-section .platform-links.shortcode [class^="icon-"] {
   font-size: 24px;
   margin-right: 16px;
@@ -12,7 +28,41 @@
   height: auto;
 }
 
+.experience .btn.btn-frameless,
+.experience-section .btn.btn-frameless {
+  border: 1px solid #478079;
+  color: #2f665f;
+  background-color: transparent;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.experience .btn.btn-frameless:hover,
+.experience .btn.btn-frameless:focus,
+.experience-section .btn.btn-frameless:hover,
+.experience-section .btn.btn-frameless:focus {
+  border-color: #2f665f;
+  color: #ffffff;
+  background-color: #478079;
+}
+
+.experience .btn.btn-frameless i,
+.experience-section .btn.btn-frameless i {
+  color: currentColor;
+}
+
 @media (min-width: 992px) {
+  .showcase-section {
+    padding-top: 56px;
+  }
+
+  .showcase-section .profile-image {
+    justify-content: flex-end;
+  }
+
+  .showcase-section .profile-image img {
+    max-width: 460px;
+  }
+
   .showcase-section .platform-links.shortcode [class^="icon-"] {
     font-size: 28px;
     margin-right: 20px;

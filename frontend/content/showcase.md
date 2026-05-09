@@ -1,10 +1,10 @@
 ---
-title: "Showcase"
-description: "Websites built with the Adritian Hugo theme"
+title: "Projects"
+description: "Selected cloud, automation, and delivery work from Hitesh Manani"
 date: 2026-03-15
 layout: "showcase"
 ---
 
-These are real websites built by the community using the Adritian Hugo theme.
+This page will collect selected projects and case studies from my Azure, automation, AI platform delivery, and Cloud Resume Challenge work.
 
-**Is your site missing?** [Submit it via GitHub](https://github.com/zetxek/adritian-free-hugo-theme/issues/new?template=showcase-submission.md) — we'd love to feature it here!
+The first version uses placeholders while the write-ups are being built out.

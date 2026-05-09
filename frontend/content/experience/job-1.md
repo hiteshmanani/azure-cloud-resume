@@ -1,20 +1,20 @@
 ---
-date: 2022-12-01T00:00:00+01:00
+date: 2024-01-01T00:00:00+01:00
 draft: false
-title: "Job #1"
-jobTitle: "Junior Intern"
-company: "Internet Affairs Inc. "
-location: "Stavanger, Norway"
-duration: "2022-2024"
-companyLogo: "images/experience/internet-affairs.png"
+title: "Contango / QData, by ADQ"
+jobTitle: "Solutions Delivery Engineer | Manager"
+company: "Contango / QData, by ADQ"
+location: "Abu Dhabi, UAE"
+duration: "Current role"
+companyLogo: "images/experience/adq-logo.jpeg"
 
 ---
-## 1st job: Junior Intern
+## Azure AI platform delivery and product assurance
 
-The beginning of a great career. As a Junior Intern at Internet Affairs Inc., I had the opportunity to work on various projects that helped me develop my technical and professional skills. Working alongside experienced developers, I contributed to the company's core web applications and learned industry best practices in software development.
+At Contango / QData by ADQ, I work across Azure-hosted AI platform delivery, product assurance, enterprise implementation, customer success, and rollout readiness for Q, a sovereign-grade AI platform for board governance used across the ADQ ecosystem.
 
-During my internship, I took the initiative to create an internal documentation wiki that improved knowledge sharing across teams. This project taught me valuable lessons in technical writing and collaboration. I also participated in code reviews and daily stand-ups, gaining firsthand experience in agile development methodologies.
+My work connects product, engineering, platform, QA, and customer-facing teams. I help translate stakeholder needs into clear user stories, acceptance criteria, test cases, Definition of Done, release plans, and customer-ready rollout communication.
 
-My most notable achievement was developing an automated testing script that reduced QA time by 25%. This project not only improved team efficiency but also demonstrated my ability to identify problems and implement effective solutions. Additionally, I actively participated in the company's mentorship program, where I helped onboard new interns and shared my growing knowledge with peers.
+I built and led the product assurance function, managed a 5-person QA/product assurance team, and served as final signoff authority for weekly production releases. I also supported enterprise POCs, onboarding, stakeholder workshops, executive demos, rollout planning, and customer environment readiness.
 
-Through these experiences, I built a strong foundation in software development and professional collaboration, setting the stage for my advancement to more senior roles within the company.
+On the platform side, I contributed to Azure delivery and infrastructure optimization, including a lower-cost proof-of-concept delivery model using shared tenancy and automated provisioning. This helped reduce monthly platform cost from around $15K to $6K, with further optimization through service redesign, resource tuning, and capacity planning.
