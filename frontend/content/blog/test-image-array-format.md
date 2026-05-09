@@ -1,7 +1,7 @@
 ---
 title: 'Test Post - Images Array Format'
 date: 2025-03-04T10:00:00+00:00
-draft: false
+draft: true
 type: 'blog'
 description: 'Test post to verify images array extraction in JSON-LD schema'
 images:

@@ -1,12 +1,12 @@
 ## Meta tags
 - id: "meta_title"
-  translation: "Adritian - a high performance hugo theme by Adrián Moreno"
+  translation: "Hitesh Manani - Azure Engineer"
 - id: "meta_description"
-  translation: "This hugo theme (Adritian) is based on Bootstrap and has features that make it suitable for a personal site, a portfolio or other kind of Single Page Applications."
+  translation: "Personal website and Azure Cloud Resume Challenge portfolio for Hitesh Manani, focused on Azure cloud engineering, AI platform delivery, and customer-facing implementation."
 - id: "meta_keywords"
-  translation: "hugo, theme, bootstrap, adritian, adrian moreno, personal site, portfolio, single page application"
+  translation: "Hitesh Manani, Azure, cloud engineering, AI platform delivery, Cloud Resume Challenge, solutions engineer, Abu Dhabi"
 - id: "meta_author"
-  translation: "Adrián Moreno Peña"
+  translation: "Hitesh Manani"
 - id: "meta_image"
   translation: "/img/general/og-image.jpg"
 
@@ -30,7 +30,7 @@
 
 ## Footer
 - id: "footer_notice"
-  translation: "© Adritian. Free Hugo theme by Adrián Moreno Peña."
+  translation: "© Hitesh Manani. Built with Hugo and the Adritian theme."
 
 - id: "language"
   translation: "Language"
@@ -79,50 +79,24 @@
   translation: "Hitesh Manani - Azure Engineer, Blogger, and Open Source Enthusiast"
 
 - id: "head_description"
-  translation: "This hugo theme (Adritian) is based on Bootstrap and has features that make it suitable for a personal site, a portfolio or other kind of Single Page Applications."
+  translation: "Personal website and Azure Cloud Resume Challenge portfolio for Hitesh Manani."
 
 ## Homepage showcase
 - id: "showcase_title"
-  translation: "Welcome to the demo"
+  translation: "Hello, I'm Hitesh"
 
 - id: "showcase_subtitle"
-  translation: "Let's dive into an example"
+  translation: "Azure cloud, AI platform delivery, and customer-facing implementation"
 
 - id: "showcase_description"
-  translation: "This is a high performance theme for the Hugo static site generator. 
-    This sample content can be edited in the locale files (as the theme supports translations).
-    <br>
-    You can download this theme from <a target='_blank' href='https://github.com/zetxek/adritian-free-hugo-theme'>github</a>, 
-    and see it live <a target='_blank' href='https://adritian-demo.vercel.app/'>as a demo site</a> 
-    or <a target='_blank' href='https://www.adrianmoreno.info'>a real one</a>.
-    <br>
-    The content you see so far in the homepage is:
-    <ul>
-      <li>Site logo/name: site config file (<code>hugo.toml</code>)</li>
-      <li>Site top menu: site config file (<code>hugo.toml</code>), look for the <code>[[languages.en.menus.header]]</code> section</li>
-      <li>This paragraph: <code>i18n/en.yaml</code> (for English)</li>
-    </ul>
-    Additionally, the order of the items in the homepage is configured in the <code>sections</code> array in the <code>hugo.toml</code> file:
-    <code>sections = [
-  \"showcase\",
-  \"about\",
-  \"education\",
-  \"experience\",
-  \"client-and-work\",
-  \"testimonial\",
-  \"contact\",
-  \"newsletter\",
-  ]</code><br/> 
-  The content of each section is defined in the <code>data/homepage.yml</code> file (ie: links to social sites, mail, ...).
-  <br/>
-  If you scroll this page you will see some hints on where the content comes from - all the way to the footer menu. These links come from the site config file (<code>hugo.toml</code>), look for the <code>[[languages.en.menus.footer]]</code> section."
+  translation: "I help move cloud and AI platforms from idea to production by connecting Azure engineering, product delivery, release readiness, and stakeholder communication."
 
 - id: "showcase_button"
   translation: "Contact"
 
   ## not visible but used for accessibility
 - id: "showcase_image_alt"
-  translation: "A picture of Cool Name"
+  translation: "A photo of Hitesh Manani"
 
 ## Homepage about
 - id: "about_title"
@@ -152,13 +126,13 @@
   translation: "LinkedIn" 
 
 - id: "experience_button_url"
-  translation: "https://www.linkedin.com/in/adrianmoreno/"
+  translation: "https://www.linkedin.com/in/hiteshmanani/"
 
 - id: "experience_button2"
   translation: "Download resume"
 
 - id: "experience_button2_url"
-  translation: "/img/general/user-smile-fill.svg"
+  translation: "/files/hitesh-resume.pdf"
 
 - id: "experience_button3"
   translation: "View all"

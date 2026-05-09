@@ -1,7 +1,7 @@
 ---
 title: 'Responsive Images'
 date: 2025-03-15T10:00:00+00:00
-draft: false
+draft: true
 type: 'blog'
 tags:
   - adritian

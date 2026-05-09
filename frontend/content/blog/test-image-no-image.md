@@ -1,7 +1,7 @@
 ---
 title: 'Test Post - No Image Fallback'
 date: 2025-03-03T10:00:00+00:00
-draft: false
+draft: true
 type: 'blog'
 description: 'Test post to verify site-level image fallback in JSON-LD schema'
 ---

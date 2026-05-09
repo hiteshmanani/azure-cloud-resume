@@ -2,10 +2,10 @@
 date: 2022-01-01T00:00:00+01:00
 draft: false
 title: "Bespin Global, an e& enterprise company"
-jobTitle: "Cloud Associate, Managed Services"
+jobTitle: "Cloud Associate"
 company: "Bespin Global, an e& enterprise company"
 location: "Abu Dhabi, UAE"
-duration: "Earlier role"
+duration: "Nov 2022 - Nov 2025"
 companyLogo: "images/experience/BespinGlobal-logo.jpg"
 
 ---

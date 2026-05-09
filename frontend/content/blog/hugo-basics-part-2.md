@@ -1,7 +1,7 @@
 ---
 title: "Hugo Basics Part 2"
 date: 2023-01-17
-draft: false
+draft: true
 type: 'blog'
 tags:
   - hugo

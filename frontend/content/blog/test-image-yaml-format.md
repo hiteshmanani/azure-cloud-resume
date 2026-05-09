@@ -1,7 +1,7 @@
 ---
 title: 'Test Post - YAML Image Format'
 date: 2025-03-01T10:00:00+00:00
-draft: false
+draft: true
 type: 'blog'
 description: 'Test post to verify images.featured_image extraction in JSON-LD schema'
 images:

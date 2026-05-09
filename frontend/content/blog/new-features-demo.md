@@ -1,7 +1,7 @@
 ---
 title: 'New Theme Features Demo'
 date: 2025-02-20T10:00:00+00:00
-draft: false
+draft: true
 type: 'blog'
 toc: true
 tocSticky: true

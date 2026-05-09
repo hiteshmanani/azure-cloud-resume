@@ -3,9 +3,9 @@ date: 2024-01-01T00:00:00+01:00
 draft: false
 title: "Contango / QData, by ADQ"
 jobTitle: "Solutions Delivery Engineer | Manager"
-company: "Contango / QData, by ADQ"
+company: "Contango (QData) by ADQ"
 location: "Abu Dhabi, UAE"
-duration: "Current role"
+duration: "Nov 2025 - Present"
 companyLogo: "images/experience/adq-logo.jpeg"
 
 ---

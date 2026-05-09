@@ -1,6 +1,6 @@
 ---
 title: "Hugo Basics"
-draft: false
+draft: true
 description: "A short series that introduces the Hugo basics."
 ---
 

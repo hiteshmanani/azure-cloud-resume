@@ -1,7 +1,7 @@
 ---
 title: 'Search improvements: multilingual, reliable, and configurable'
 date: 2026-01-01T09:00:00+00:00
-draft: false
+draft: true
 type: 'blog'
 tags:
   - search
