@@ -13,13 +13,13 @@
 ## Header
 
 - id: "logo_alt"
-  translation: "Adritian logo"
+  translation: "Hitesh Manani home"
 
 - id: "logo_text1"
-  translation: "Adritian"
+  translation: "Hitesh"
 
 - id: "logo_text2"
-  translation: "Demo"
+  translation: "Manani"
 
 ## General
 - id: "skipToMainContent"
@@ -76,7 +76,7 @@
 
 ## Homepage head title
 - id: "head_title"
-  translation: "Demo site for Adritian - a high performance hugo theme by Adrián Moreno"
+  translation: "Hitesh Manani - Azure Engineer, Blogger, and Open Source Enthusiast"
 
 - id: "head_description"
   translation: "This hugo theme (Adritian) is based on Bootstrap and has features that make it suitable for a personal site, a portfolio or other kind of Single Page Applications."

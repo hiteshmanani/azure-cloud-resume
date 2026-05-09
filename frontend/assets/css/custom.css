@@ -1,0 +1,20 @@
+.showcase-section .platform-links.shortcode [class^="icon-"] {
+  font-size: 24px;
+  margin-right: 16px;
+}
+
+.showcase-section .platform-links.shortcode a:last-child [class^="icon-"] {
+  margin-right: 0;
+}
+
+.profile-image img,
+.about__profile-picture img {
+  height: auto;
+}
+
+@media (min-width: 992px) {
+  .showcase-section .platform-links.shortcode [class^="icon-"] {
+    font-size: 28px;
+    margin-right: 20px;
+  }
+}
