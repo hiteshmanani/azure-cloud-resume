@@ -189,10 +189,16 @@ Before filling content, use the available project brief or ask the user for miss
 
 Important context files to read before major content edits:
 
+- WORKING_NOTES.md
+- TODO.md
 - notes/site-content-brief.md
 - notes/project-handoff.md
 
 If these files do not exist yet, ask the user to create or provide them before doing major content edits.
+
+Use WORKING_NOTES.md for current handover/state notes and TODO.md for the prioritized backlog. Keep temporary task details out of AGENTS.md.
+
+Project-level Hugo layout overrides may exist under frontend/layouts/. In particular, frontend/layouts/partials/experience-description.html controls the customized experience-section button rendering.
 
 ## How to work with the user
 
