@@ -7,7 +7,7 @@ app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 @app.route(route="visitor-count", methods=["GET"])
 def visitor_count(req):
     response_body = {
-        "visitor_count": 0
+        "visitor_count": 123
     }
 
     return func.HttpResponse(

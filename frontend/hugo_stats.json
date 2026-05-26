@@ -156,6 +156,7 @@
       "flex-wrap",
       "footer",
       "footer__copy",
+      "footer__visitor-count",
       "footer_left",
       "footer_links",
       "footer_right",
@@ -333,6 +334,7 @@
       "text-muted",
       "theme-icon",
       "theme-selector",
+      "visitor-count",
       "visually-hidden",
       "w-100",
       "widget",
@@ -385,6 +387,7 @@
       "theme-dropdown-footer",
       "theme-dropdown-header",
       "title",
+      "visitor-count",
       "what-im-up-to-now",
       "what-is-this-page",
       "wordcount"
