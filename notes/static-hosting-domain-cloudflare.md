@@ -4,6 +4,18 @@
 
 Completed.
 
+The broader Cloud Resume Challenge app is now also working end to end:
+
+Browser
+→ Cloudflare edge/CDN/proxy
+→ Azure Storage Static Website
+→ Hugo/JavaScript visitor counter
+→ Azure Function HTTP API
+→ Python backend
+→ Cosmos DB Table API
+
+This note remains focused on static hosting, custom domain, HTTPS, and Cloudflare.
+
 The Hugo static site is live at:
 
 https://www.hiteshmanani.com
@@ -17,6 +29,10 @@ User browser
 → Azure Storage static website endpoint
 → $web container
 → Hugo-generated static files
+
+The visitor counter backend is separate from the static hosting origin. The frontend JavaScript calls the deployed Azure Function API:
+
+`https://func-hm-crc-eaene9aufsf4cmen.uaenorth-01.azurewebsites.net/api/visitor-count`
 
 ## Hosting model
 
@@ -217,6 +233,10 @@ For a low-traffic personal portfolio site, the fixed monthly cost was not justif
 Final decision:
 
 Use Azure Storage Static Website for the required Azure hosting layer, and Cloudflare Free for DNS, CDN/proxy, TLS, and redirects.
+
+Current Cloudflare IaC decision:
+
+Cloudflare remains manually managed for now. Do not add the Cloudflare Terraform provider, request Cloudflare API tokens, or automate Cloudflare cache purge yet. Later, if a Terraform-created Azure Storage static website is tested successfully, Cloudflare can be manually repointed to the new Azure Storage origin.
 
 Interview/blog framing:
 

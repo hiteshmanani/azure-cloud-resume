@@ -34,7 +34,7 @@ Current frontend stack:
 - Local development in VS Code
 - Local preview using Hugo server
 
-Later project components:
+Implemented project components:
 
 - Azure Storage static website hosting
 - Custom domain and HTTPS
@@ -42,8 +42,12 @@ Later project components:
 - Azure Functions HTTP API
 - Python backend logic
 - Serverless database for visitor count storage
+- Cloudflare DNS/CDN/TLS/proxy
+
+Current/next project components:
+
 - Unit tests
-- Infrastructure as Code, preferably Bicep unless there is a strong reason otherwise
+- Infrastructure as Code with Terraform
 - GitHub Actions CI/CD
 - Architecture diagram
 - Blog post and interview-ready explanation
@@ -65,11 +69,43 @@ Do not make design or framework choices that hide or remove these learning objec
 - CI/CD
 - final blog post
 
-Hugo is only used to generate static files. Azure Storage will later host the generated static output, not Hugo itself.
+Hugo is only used to generate static files. Azure Storage hosts the generated static output, not Hugo itself.
 
-The expected deployment flow later is:
+The current manual deployment flow is:
 
 Hugo source files -> Hugo build -> public output folder -> upload public output contents to Azure Storage static website container.
+
+The current live architecture is:
+
+Browser -> Cloudflare -> Azure Storage Static Website -> Hugo/JavaScript -> Azure Function HTTP API -> Python backend -> Cosmos DB Table API.
+
+Current live resources:
+
+- Domain: `https://www.hiteshmanani.com`
+- Storage account: `personalwebsitesacrc`
+- Function App: `func-hm-crc`
+- Visitor counter API: `https://func-hm-crc-eaene9aufsf4cmen.uaenorth-01.azurewebsites.net/api/visitor-count`
+- Resource group: `crc-personal-website`
+- Region: `UAE North`
+- Cosmos DB Table API account: `hm-crc-cosmosdb`
+- Cosmos table: `VisitorCounter`
+
+Do not document or expose connection string values, Function keys, storage keys, Cloudflare tokens, GitHub tokens, Azure credentials, or subscription IDs.
+
+## Current infrastructure-as-code direction
+
+Hitesh chose Terraform for Phase 5.
+
+Terraform decision:
+
+- Build a fresh Terraform-managed Azure environment from scratch.
+- Do not import or adopt the existing live resources.
+- Do not use Terraform import for now.
+- Existing production stays untouched while Terraform is developed and tested.
+- Terraform manages Azure infrastructure only.
+- Cloudflare remains manually managed for now.
+
+Do not add the Cloudflare Terraform provider or request Cloudflare API tokens unless the user explicitly changes this decision later.
 
 ## Current working assumption
 

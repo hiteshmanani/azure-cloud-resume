@@ -26,3 +26,18 @@ frontend/node_modules/
 AGENTS.md
 TODO.md
 WORKING_NOTES.md
+
+#Terraform shell script
+infra/.debug-prod.sh
+
+# Terraform local/runtime files
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+
+
+# Local helper scripts
+.debug-prod.sh

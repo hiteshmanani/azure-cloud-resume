@@ -1,261 +1,217 @@
 # Project Handoff
 
-## Purpose of this file
+## Purpose
 
-This file gives Codex technical context about the current state of my Azure Cloud Resume Challenge project.
+This file gives Codex or another engineer the current technical state of Hitesh Manani's Azure Cloud Resume Challenge personal website.
 
-It summarizes what has already been completed, what tools are installed, what decisions have been made, and what the next likely steps are.
+It is a handoff note, not final public website copy.
 
-This is not final website content. It is project context for implementation support.
+## Current Phase
 
-## Project
+Current phase: Phase 5 - Testing and Terraform Infrastructure as Code.
 
-Project name: Azure Cloud Resume Challenge personal website
+The live project is working end to end:
 
-Repository purpose:
+```text
+Browser
+-> Cloudflare
+-> Azure Storage Static Website
+-> Hugo/JavaScript
+-> Azure Function HTTP API
+-> Python backend
+-> Cosmos DB Table API
+```
 
-Build a polished personal portfolio website that satisfies the Azure version of the Cloud Resume Challenge.
+## Live Production Details
 
-The website should be a personal website first and a resume site second. It should include professional positioning, experience, projects, Cloud Resume Challenge documentation, blog/technical notes, contact links, and eventually a resume download.
+- Canonical domain: `https://www.hiteshmanani.com`
+- DNS/CDN/TLS/proxy: Cloudflare
+- Azure Storage account: `personalwebsitesacrc`
+- Static website endpoint: `https://personalwebsitesacrc.z1.web.core.windows.net/`
+- Azure Function App: `func-hm-crc`
+- API endpoint: `https://func-hm-crc-eaene9aufsf4cmen.uaenorth-01.azurewebsites.net/api/visitor-count`
+- Resource group: `crc-personal-website`
+- Region: `UAE North`
+- Cosmos DB Table API account: `hm-crc-cosmosdb`
+- Cosmos table: `VisitorCounter`
+- Counter entity: `PartitionKey = site`, `RowKey = main`, `Count = incrementing`
 
-## Current phase
+Do not document or expose connection strings, keys, tokens, or subscription IDs.
 
-Current phase: Frontend foundation / Hugo theme customization
+## Repository Shape
 
-We have completed initial developer setup and moved from a basic static HTML/CSS/JS prototype to a Hugo + Adritian static site.
-
-We are not yet deploying to Azure.
-
-We are not yet building the visitor counter backend.
-
-We are not yet creating Azure resources.
-
-## Current project structure
-
-The repo currently uses this structure:
+```text
 personal_website/
-├── AGENTS.md
 ├── README.md
-├── .gitignore
+├── TODO.md
+├── WORKING_NOTES.md
+├── AGENTS.md
 ├── frontend/
 ├── backend/
 ├── infra/
 └── notes/
-Folder meaning:
+```
 
-frontend/ contains the Hugo static site source.
-backend/ will later contain the Azure Functions API.
-infra/ will later contain Infrastructure as Code, likely Bicep.
-notes/ contains project notes, content briefs, troubleshooting notes, and future blog material.
-Frontend stack
+- `frontend/` contains the Hugo static site source.
+- `backend/` contains the Azure Functions Python API.
+- `infra/` is the Terraform work area for the next phase.
+- `notes/` contains project notes, handoff docs, and troubleshooting material.
 
-The frontend currently uses:
+## Frontend
 
-Hugo static site generator
-Adritian Hugo theme
-Hugo Modules
-Go for Hugo module support
-Node.js and npm for theme dependencies
-Local preview with hugo server
+Frontend stack:
 
-The site currently runs locally at:
+- Hugo static site generator
+- Adritian Hugo theme
+- Hugo Modules
+- JavaScript visitor counter
+- Azure Storage Static Website hosting
+- Cloudflare custom domain, CDN/proxy, and TLS
+
+Important files:
+
+- `frontend/hugo.toml` controls site config, menus, metadata, theme imports, plugins, and output behavior.
+- `frontend/content/home/home.md` composes the homepage with Adritian shortcodes.
+- `frontend/content/footer/footer.md` controls the contact section rendered above the footer navigation.
+- `frontend/layouts/partials/footer.html` is a project-level override that integrates the visitor counter into the footer.
+- `frontend/static/js/visitor-count.js` chooses the visitor counter API URL:
+  - local Hugo uses `http://localhost:7071/api/visitor-count`,
+  - production uses the deployed Azure Function endpoint.
+- `frontend/assets/css/custom.css` contains project visual overrides.
+
+Deployment model:
+
+```text
+Hugo source
+-> hugo build
+-> frontend/public/
+-> upload contents of public/ to Azure Storage $web container
+```
+
+Azure Storage hosts static output only. It does not host Hugo itself.
+
+## Backend
+
+Backend stack:
+
+- Azure Functions Python v2 programming model
+- HTTP trigger route: `GET /api/visitor-count`
+- Python package dependencies in `backend/requirements.txt`
+- Cosmos DB Table API accessed through `azure-data-tables`
+
+Important files:
+
+- `backend/function_app.py` defines the visitor counter API.
+- `backend/requirements.txt` includes `azure-functions` and `azure-data-tables`.
+- `backend/local.settings.json` is local-only and ignored by Git.
+
+The function:
+
+1. Reads `AZURE_TABLE_CONNECTION_STRING` from environment settings.
+2. Connects to table `VisitorCounter`.
+3. Reads entity `PartitionKey = site`, `RowKey = main`.
+4. Increments `Count`.
+5. Writes the updated entity.
+6. Returns JSON with the updated visitor count.
+
+`AZURE_TABLE_CONNECTION_STRING` must exist only in local settings and Azure Function App settings. Never commit or document its value.
+
+## Local Development
+
+Frontend:
+
+```bash
+cd ~/Desktop/DEV/personal_website/frontend
+hugo server
+```
+
+Open:
+
+```text
 http://localhost:1313/
+```
 
-Important architecture clarification
+Backend:
 
-Azure Storage will not host Hugo itself.
+```bash
+cd ~/Desktop/DEV/personal_website/backend
+source .venv/Scripts/activate
+func start --cors http://localhost:1313
+```
 
-The deployment flow later should be:
-Hugo source files -> hugo build -> public/ output folder -> upload contents of public/ to Azure Storage static website container
+Local API:
 
-The generated static files are what Azure Storage will host.
+```text
+http://localhost:7071/api/visitor-count
+```
 
-Tools installed and verified
+Python note:
 
-The following tools have been installed and verified:
+- `py --version` works and points to Python 3.12.
+- `python --version` may not work because Python is not directly on PATH.
+- Use the virtual environment or `py` commands unless PATH is fixed.
 
-VS Code
-Azure Tools extension for VS Code
-Git
-Azure CLI
-Azure Functions Core Tools
-Hugo Extended
-Go
-Node.js
-npm
-Python available through the Windows py launcher
-Codex extension in VS Code
+## Completed Milestones
 
-Known Python note:
+- Hugo + Adritian site scaffolded and customized.
+- Homepage, about, experience, projects, blog placeholder, contact, and footer content personalized.
+- Azure Storage Static Website hosting completed.
+- Cloudflare DNS/CDN/TLS/proxy completed.
+- Root domain redirects to `www`.
+- Visitor counter frontend display added.
+- Azure Functions Python API created and deployed.
+- Cosmos DB Table API visitor count storage created.
+- API configured through Function App app settings.
+- CORS configured for local Hugo and live site.
+- Live end-to-end visitor counter verified.
 
-py --version works and currently points to Python 3.12.
-python --version does not currently work because Python is not on PATH directly.
-This is not currently blocking frontend work.
-Later backend work may use py commands unless Python PATH is fixed.
-Git status and history
+## Terraform Decision
 
-A private GitHub repository has been created and connected as origin.
+Hitesh chose Terraform for IaC.
 
-The main branch is main.
+Decision:
 
-A Git tag was created:
-basic-html-baseline
+- Terraform installed locally: `v1.15.3`.
+- Build a fresh Terraform-managed Azure environment from scratch.
+- Do not import or adopt the existing live resources.
+- Do not use Terraform import for now.
+- Existing production stays untouched.
+- Terraform manages Azure infrastructure only.
 
-This tag marks the simple hand-written HTML/CSS/JS frontend before replacing it with Hugo.
+This means the next engineer should not try to convert the current live resources into Terraform state.
 
-Important commits completed so far include:
+## Cloudflare Decision
 
-initial project structure and static website files
-initial README
-basic personal website HTML structure
-Hugo site scaffold
-Adritian Hugo theme baseline
-Codex project instructions through AGENTS.md
-website content brief through notes/site-content-brief.md
+Cloudflare remains manually managed for now.
 
-The user manually controls Git commits and pushes.
+- Do not add the Cloudflare Terraform provider.
+- Do not request or use Cloudflare API tokens.
+- Cloudflare cache purge remains manual.
+- Later, once Terraform-created Azure Storage hosting is tested, Cloudflare can be manually repointed to the new Azure Storage static website origin.
+- Automated cache purge can be revisited later with a limited Cloudflare API token stored securely in GitHub Actions secrets.
 
-Codex should not commit or push.
+## Security Rules
 
-Important setup issue already solved
+Never commit:
 
-When installing Adritian starter content, the Node helper script failed in Windows PowerShell with: Error: spawnSync rm ENOENT
+- `backend/local.settings.json`
+- `.venv/`
+- `__pycache__/`
+- Azure secrets
+- Cosmos DB connection strings
+- Function keys
+- Storage account keys
+- Cloudflare API tokens
+- GitHub tokens
+- Azure credentials or subscription IDs
 
-Likely cause:
+Frontend JavaScript must never talk directly to Cosmos DB. The browser calls the Azure Function API only.
 
-The script tried to run Unix-style rm, which was not available as an executable in PowerShell.
+## Immediate Next Steps
 
-Fix used:
-
-Cleaned up failed temp folder.
-Opened Git Bash.
-Ran the content download script from Git Bash.
-Then ran Hugo server again.
-
-Result:
-
-The Adritian site successfully opened at: http://localhost:1313/
-
-Important .gitignore rules
-
-The repo should not commit generated or dependency folders.
-
-The .gitignore includes rules for:
-
-Python cache files
-virtual environments
-Azure Functions local settings
-OS/editor files
-Hugo generated output
-Hugo resources
-Hugo build lock
-frontend node_modules
-
-Do not commit:
-frontend/node_modules/
-frontend/public/
-frontend/resources/_gen/
-frontend/.hugo_build.lock
-local.settings.json
-.venv/
-__pycache__/
-Never commit secrets, keys, tokens, credentials, connection strings, Azure subscription IDs, or local settings containing secrets.
-
-Current content context
-
-Before making major content edits, read: notes/site-content-brief.md
-
-That file contains:
-
-professional positioning
-experience summary
-projects to feature
-skills categories
-blog direction
-Cloud Resume Challenge page direction
-contact/resume guidance
-personal layer / outside work guidance
-tone and privacy rules
-
-Do not copy the whole brief directly into the website. Use it to create concise, credible website content.
-
-Current Codex usage approach
-
-Codex should be used as a careful implementation assistant and code tutor.
-
-Preferred Codex settings for now:
-
-Work locally
-Plan Mode on
-IDE context on
-Default permissions
-High intelligence
-Standard speed
-No full access
-
-Codex should first inspect and explain the Hugo/Adritian structure before editing.
-
-Codex should propose a section plan before changing site content.
-
-Codex should make small, reviewable changes only after user approval.
-
-What Codex should help with next
-
-Next likely task:
-
-Inspect the Hugo + Adritian project structure and identify which files control the main editable site content, configuration, navigation, homepage sections, blog/content pages, projects, contact area, static assets, and theme behavior.
-
-Then propose a beginner-safe plan for customizing the Adritian demo into Hitesh Manani's personal website.
-
-The plan should mark sections as:
-
-keep
-customize
-repurpose
-hide
-remove later
-
-No edits should be made during the first inspection/planning task.
-
-Current next implementation goal
-
-The next implementation goal is to replace Adritian demo content with a first personalized baseline.
-
-Version 1 should focus on:
-
-hero/homepage copy
-about section
-experience summary
-skills/capabilities
-selected projects
-Cloud Resume Challenge project/case study placeholder
-blog placeholder
-contact links
-resume download placeholder if appropriate
-small personal layer if it fits naturally
-
-Avoid for Version 1:
-
-React
-Next.js
-Astro
-CMS
-chatbot
-analytics
-newsletter tooling
-comments
-multilingual complexity
-advanced animations
-heavy theme rewrites
-Azure deployment
-visitor counter backend
-CI/CD
-
-
-Then commit it:
-git add notes/project-handoff.md
-git commit -m "Add project handoff notes for Codex"
-git push
-
-Then verify:
-git status
+1. Add backend tests for visitor counter logic.
+2. Plan Terraform in `infra/` for a fresh Azure environment.
+3. Keep current production untouched while Terraform is developed and tested.
+4. Later add CI/CD for frontend and backend deployment.
+5. Create architecture diagram.
+6. Write Cloud Resume Challenge case study/blog post.

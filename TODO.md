@@ -1,88 +1,89 @@
 # TODO
 
+## Current Phase
+
+Phase 5 - Testing and Terraform Infrastructure as Code.
+
+The live site and visitor counter are working end to end:
+
+```text
+Browser
+-> Cloudflare
+-> Azure Storage Static Website
+-> Hugo/JavaScript
+-> Azure Function HTTP API
+-> Python backend
+-> Cosmos DB Table API
+```
+
 ## Priority Tasks
 
-1. Verify deployment-readiness cleanup.
-   - From `frontend/`, run `hugo --cleanDestinationDir`.
-   - Then run `hugo`.
-   - Confirm stale language routes such as `/fr/`, `/es/`, `/ar/`, and `/he/` are gone from `frontend/public/`.
-   - Confirm `/index.json` does not include old demo content.
+1. Add backend tests for the visitor counter API.
+   - Separate the counter read/increment/update behavior into testable logic if needed.
+   - Mock Cosmos DB/Table client calls rather than using the live database in unit tests.
+   - Cover successful increment, missing/invalid count values, and API response shape.
 
-2. Review the site locally.
-   - From `frontend/`, run `hugo server`.
-   - Open `http://localhost:1313/`.
-   - Check footer links: Home, About, Projects, Blog, Now, Contact.
-   - Check `/blog/`, `/showcase/`, `/search/`, and `/now/`.
-   - Search for terms like `article`, `Adritian`, `Radity`, `Asgardia`, and `testimonial`.
+2. Start Terraform planning in `infra/`.
+   - Use Terraform v1.15.3.
+   - Build a fresh Terraform-managed Azure environment from scratch.
+   - Do not import or adopt the current live resources.
+   - Keep existing production untouched during Terraform development.
+   - Manage Azure resources only.
 
-3. Review Git diff manually.
-   - If Git safe-directory protection blocks status, run:
+3. Define the fresh Terraform environment.
+   - Resource group.
+   - Storage account with static website enabled.
+   - Function App and required hosting resources.
+   - Cosmos DB Table API account/table/entity setup where appropriate.
+   - App settings for the Function App, with secret values supplied securely and not committed.
 
-```powershell
-git config --global --add safe.directory C:/Users/Asus/Desktop/DEV/personal_website
-```
+4. Keep Cloudflare manual for now.
+   - Do not add the Cloudflare Terraform provider.
+   - Do not request or use Cloudflare API tokens.
+   - Later, manually repoint Cloudflare to the Terraform-created Azure Storage static website origin after it is tested.
+   - Keep Cloudflare cache purge manual for now.
 
-   - Then run:
+5. Plan CI/CD after Terraform design is stable.
+   - Frontend build and upload to Azure Storage.
+   - Backend deploy to Azure Functions.
+   - Secure handling of Azure credentials and app settings.
+   - No generated output or secrets committed.
 
-```powershell
-git status
-git diff
-```
-
-4. SEO follow-up pass.
-   - Confirm final `baseURL`.
-   - Replace placeholder/social preview image with a final branded OG image if desired.
-   - Review page titles and descriptions.
-   - Review sitemap and robots output.
-   - Add external indexing setup after deployment, such as Google Search Console.
-   - Remember: SEO improves discoverability but does not guarantee ranking first.
-
-5. Future Azure Cloud Resume Challenge work.
-   - Azure Storage static website hosting.
-   - JavaScript visitor counter.
-   - Azure Functions HTTP API.
-   - Python backend logic.
-   - Serverless database for visitor count storage.
-   - Unit tests.
-   - Bicep infrastructure as code.
-   - GitHub Actions CI/CD.
-   - Custom domain and HTTPS.
+6. Create final explanation artifacts.
    - Architecture diagram.
-   - Final blog post and interview-ready explanation.
+   - Cloud Resume Challenge case study page or blog post.
+   - Interview-ready explanation of static hosting, serverless API, database, IaC, and CI/CD.
 
-## Completed
+## Completed Milestones
 
-- Personalized homepage hero/about content for Hitesh.
-- Added Hitesh profile images.
-- Restored Education with Heriot-Watt University.
-- Hid Skills from visible nav/buttons without deleting `frontend/content/skills`.
-- Updated header brand to Hitesh Manani.
-- Hid visible language selectors.
-- Removed unused homepage/footer demo sections.
-- Configured footer contact form with Formspree endpoint.
-- Added project-level CSS visual polish.
-- Replaced visible English experience content with Contango/QData and Bespin Global.
-- Added ADQ and Bespin Global logos to experience entries.
-- Added homepage buttons for All Experience, LinkedIn, and View Resume.
-- Changed top nav `Portfolio` to `Experience`.
-- Repurposed `/showcase/` as `Projects` with three placeholders.
-- Removed hardcoded Adritian showcase CTA with a local layout override.
-- Renamed top nav `How to` to `Blog`.
-- Added one visible Cloud Resume Challenge blog placeholder post.
-- Draft-hidden English demo blog posts.
-- Disabled blog categories sidebar for now.
-- Replaced main Adritian demo metadata in `hugo.toml` and `i18n/en.yaml`.
-- Removed disabled non-English language blocks from `hugo.toml` for V1.
-- Updated English footer menu to include Projects, Blog, Now, and Contact.
-- Draft-hidden demo `articles`, `news`, `client-work`, `testimonial`, old `projects`, and demo author pages.
-- Consolidated search around one canonical `/search/` page.
-- Added `/now/` page.
-- Enabled robots output and improved basic SEO metadata.
+- Personalized Hugo + Adritian portfolio site.
+- Configured custom domain, HTTPS, Cloudflare proxy/CDN, and root-to-www redirect.
+- Hosted generated Hugo site on Azure Storage Static Website.
+- Added JavaScript visitor counter display in the footer.
+- Created Azure Functions Python HTTP API.
+- Connected Python backend to Cosmos DB Table API.
+- Stored visitor count in table `VisitorCounter`, entity `PartitionKey = site`, `RowKey = main`.
+- Deployed Function App `func-hm-crc`.
+- Configured CORS for local Hugo and the live website.
+- Updated frontend JavaScript to call local API during local development and deployed API in production.
+- Confirmed live end-to-end visitor counter flow works.
+
+## Current Live Resources
+
+- Domain: `https://www.hiteshmanani.com`
+- Storage account: `personalwebsitesacrc`
+- Static website endpoint: `https://personalwebsitesacrc.z1.web.core.windows.net/`
+- Function App: `func-hm-crc`
+- API endpoint: `https://func-hm-crc-eaene9aufsf4cmen.uaenorth-01.azurewebsites.net/api/visitor-count`
+- Resource group: `crc-personal-website`
+- Region: `UAE North`
+- Cosmos DB Table API account: `hm-crc-cosmosdb`
+- Cosmos table: `VisitorCounter`
 
 ## Ongoing Rules
 
 - Do not edit theme module internals unless necessary.
-- Prefer hiding or drafting demo content before deleting it.
+- Prefer local project overrides under `frontend/layouts/`.
 - Do not commit or push from Codex.
 - Do not commit generated or dependency folders:
   - `frontend/node_modules/`
@@ -92,3 +93,5 @@ git diff
   - `.venv/`
   - `__pycache__/`
 - Do not commit secrets, keys, tokens, connection strings, credentials, subscription IDs, or local settings.
+- `backend/local.settings.json` must stay uncommitted.
+- Frontend JavaScript must never talk directly to Cosmos DB.
