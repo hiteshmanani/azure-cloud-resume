@@ -46,3 +46,56 @@ resource "azurerm_role_assignment" "current-user-role-asignment" {
   role_definition_name = "Storage Blob Data Contributor"
   principal_id         = data.azurerm_client_config.current.object_id
 }
+
+# 5. COSMOS DB TABLE API
+
+resource "azurerm_cosmosdb_account" "main-crc-cosmosdb" {
+  name                = "cosmos-${var.application_name}-${var.environment}-001"
+  location            = var.cosmos_db_location
+  resource_group_name = azurerm_resource_group.main-rg.name
+  offer_type          = "Standard"
+  capacity {
+    total_throughput_limit = 4000
+  }
+  backup {
+    type                = "Continuous"
+    tier                = "Continuous7Days"
+  }
+
+  kind = "GlobalDocumentDB"
+
+  consistency_policy {
+    consistency_level = "Session"
+  }
+
+  geo_location {
+    failover_priority = 0
+    location          = var.cosmos_db_location
+    zone_redundant    = false
+  }
+
+  capabilities {
+    name = "EnableTable"
+  }
+  capabilities {
+    name = "EnableServerless"
+  }
+
+}
+
+resource "azurerm_cosmosdb_table" "visitor-counter-table" {
+  name                = var.cosmos_db_table
+  resource_group_name = azurerm_resource_group.main-rg.name
+  account_name        = azurerm_cosmosdb_account.main-crc-cosmosdb.name
+
+}
+
+
+
+
+
+
+
+
+
+

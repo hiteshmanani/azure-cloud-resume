@@ -14,5 +14,10 @@ variable "cosmos_db_location" {
   type = string
 }
 
+variable "cosmos_db_table" {
+  type = string
+}
+
+
 
 
