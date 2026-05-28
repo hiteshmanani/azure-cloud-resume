@@ -58,8 +58,8 @@ resource "azurerm_cosmosdb_account" "main-crc-cosmosdb" {
     total_throughput_limit = 4000
   }
   backup {
-    type                = "Continuous"
-    tier                = "Continuous7Days"
+    type = "Continuous"
+    tier = "Continuous7Days"
   }
 
   kind = "GlobalDocumentDB"
@@ -81,12 +81,122 @@ resource "azurerm_cosmosdb_account" "main-crc-cosmosdb" {
     name = "EnableServerless"
   }
 
+  tags = {
+    environment = "prod"
+    application = "crc"
+    created_by  = "terraform"
+  }
+
 }
 
+# Creating a Cosmos DB Table for visitor counter
 resource "azurerm_cosmosdb_table" "visitor-counter-table" {
   name                = var.cosmos_db_table
   resource_group_name = azurerm_resource_group.main-rg.name
   account_name        = azurerm_cosmosdb_account.main-crc-cosmosdb.name
+
+}
+
+# 6. AZURE FUNCTION APP HOSTING
+# Function App deployment/runtime storage account.
+# Flex Consumption needs a storage account and private blob container 
+# where Azure stores deployment packages and host runtime files.
+
+resource "azurerm_storage_account" "main-crc-funcapp-sa" {
+  name                     = "safuncapp${var.application_name}${var.environment}001"
+  resource_group_name      = azurerm_resource_group.main-rg.name
+  location                 = azurerm_resource_group.main-rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  account_kind             = "StorageV2"
+
+  tags = {
+    environment = "prod"
+    application = "crc"
+    created_by  = "terraform"
+  }
+}
+
+# Contaier for Function App runtime and deployment packages insuide the storage account above.
+resource "azurerm_storage_container" "main-crc-funcapp-container" {
+  name                  = "container-funcapp-${var.application_name}-${var.environment}"
+  storage_account_id    = azurerm_storage_account.main-crc-funcapp-sa.id
+  container_access_type = "private"
+
+}
+
+
+# Flex Consumption App Service plan.
+# sku_name = "FC1" is the Flex Consumption SKU; memory is configured on the Function App resource below.
+
+resource "azurerm_service_plan" "main-crc-funcapp-asp" {
+  name                = "asp-${var.application_name}-${var.environment}"
+  resource_group_name = azurerm_resource_group.main-rg.name
+  location            = azurerm_resource_group.main-rg.location
+  os_type             = "Linux"
+  sku_name            = "FC1"
+
+  tags = {
+    environment = "prod"
+    application = "crc"
+    created_by  = "terraform"
+  }
+}
+
+
+# Python Azure Function App on Flex Consumption.
+# This creates the empty Azure host; deploying backend/function_app.py happens separately for now.
+
+resource "azurerm_function_app_flex_consumption" "main-crc-funcapp" {
+  name                = "func-${var.application_name}-${var.environment}"
+  resource_group_name = azurerm_resource_group.main-rg.name
+  location            = azurerm_resource_group.main-rg.location
+
+  service_plan_id = azurerm_service_plan.main-crc-funcapp-asp.id
+
+  # Flex deployment package storage.
+  # Terraform/provider uses these properties to configure platform storage, including AzureWebJobsStorage.
+  storage_container_type      = "blobContainer"
+  storage_container_endpoint  = "${azurerm_storage_account.main-crc-funcapp-sa.primary_blob_endpoint}${azurerm_storage_container.main-crc-funcapp-container.name}"
+  storage_authentication_type = "StorageAccountConnectionString"
+  storage_access_key          = azurerm_storage_account.main-crc-funcapp-sa.primary_access_key
+
+  runtime_name    = "python"
+  runtime_version = "3.12"
+
+  # Flex Consumption sizing.
+  # 512 MB matches the small manual deployment size; Azure can scale out up to maximum_instance_count when needed.
+  instance_memory_in_mb  = 512
+  maximum_instance_count = 20
+
+
+  site_config {
+    cors {
+      allowed_origins = [
+        "http://localhost:1313",
+        trimsuffix(azurerm_storage_account.main-crc-sa.primary_web_endpoint, "/")
+      ]
+    }
+  }
+
+  # Keep only non-secret settings here.
+  # Add AZURE_TABLE_CONNECTION_STRING manually in Azure Portal/CLI for now so it is not stored in Git or Terraform state.
+  app_settings = {
+    #SCM_DO_BUILD_DURING_DEPLOYMENT = "true"
+    # AZURE_TABLE_CONNECTION_STRING = var.AZURE_TABLE_CONNECTION_STRING
+  }
+
+  lifecycle {
+    ignore_changes = [
+      app_settings
+    ]
+  }
+
+  tags = {
+    environment = "prod"
+    application = "crc"
+    created_by  = "terraform"
+  }
 
 }
 
