@@ -230,15 +230,17 @@ Current status:
 - Hugo site scaffold created.
 - Adritian theme installed and running locally.
 - Codex project instructions added through AGENTS.md.
+- Azure Storage static hosting, JavaScript visitor counter, Azure Functions backend, Cosmos DB Table API, custom domain/HTTPS, and Terraform-managed rebuild have been completed and tested.
+- GitHub Actions CI/CD, architecture diagram, and final case study/write-up are still planned.
 
-Future planned components:
+Cloud Resume Challenge components:
 
 - Azure Storage static website hosting
 - JavaScript visitor counter
 - Azure Functions HTTP API
 - Python backend logic
 - Serverless database
-- Bicep infrastructure as code
+- Terraform infrastructure as code
 - GitHub Actions CI/CD
 - custom domain and HTTPS
 - architecture diagram

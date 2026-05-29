@@ -52,6 +52,12 @@ Current/next project components:
 - Architecture diagram
 - Blog post and interview-ready explanation
 
+Current Terraform/IaC status:
+
+- A fresh Terraform-managed Azure environment has been created and tested end to end.
+- The original Cloudflare production site remains separate and has not been repointed.
+- The next planned phase is GitHub Actions CI/CD planning and implementation.
+
 ## Important Cloud Resume Challenge constraints
 
 The project must still satisfy the Azure Cloud Resume Challenge requirements.
@@ -90,6 +96,15 @@ Current live resources:
 - Cosmos DB Table API account: `hm-crc-cosmosdb`
 - Cosmos table: `VisitorCounter`
 
+Current Terraform-managed resources:
+
+- Static website endpoint: `https://sacrcprod001.z1.web.core.windows.net/`
+- Storage account: `sacrcprod001`
+- Function App: `func-crc-prod`
+- Resource group: `rg-crc-prod`
+- Cosmos DB Table API account: `cosmos-crc-prod-001`
+- Cosmos table: `VisitorCounter`
+
 Do not document or expose connection string values, Function keys, storage keys, Cloudflare tokens, GitHub tokens, Azure credentials, or subscription IDs.
 
 ## Current infrastructure-as-code direction
@@ -104,8 +119,12 @@ Terraform decision:
 - Existing production stays untouched while Terraform is developed and tested.
 - Terraform manages Azure infrastructure only.
 - Cloudflare remains manually managed for now.
+- Terraform-managed Azure Storage, Function App, and Cosmos DB Table API have been tested end to end.
+- Before implementing CI/CD, read `notes/project-handoff.md` and `notes/ci-cd-plan.md`.
 
 Do not add the Cloudflare Terraform provider or request Cloudflare API tokens unless the user explicitly changes this decision later.
+
+Do not create or modify GitHub Actions workflow YAML unless the user explicitly approves the workflow design first.
 
 ## Current working assumption
 

@@ -236,7 +236,13 @@ Use Azure Storage Static Website for the required Azure hosting layer, and Cloud
 
 Current Cloudflare IaC decision:
 
-Cloudflare remains manually managed for now. Do not add the Cloudflare Terraform provider, request Cloudflare API tokens, or automate Cloudflare cache purge yet. Later, if a Terraform-created Azure Storage static website is tested successfully, Cloudflare can be manually repointed to the new Azure Storage origin.
+Cloudflare remains manually managed for now. Do not add the Cloudflare Terraform provider, request Cloudflare API tokens, or automate Cloudflare cache purge yet.
+
+A fresh Terraform-managed Azure environment has since been created and tested separately at:
+
+`https://sacrcprod001.z1.web.core.windows.net/`
+
+Cloudflare has not been repointed to that environment. See `notes/project-handoff.md` for the current environment split and `notes/ci-cd-plan.md` for the planned GitHub Actions phase.
 
 Interview/blog framing:
 

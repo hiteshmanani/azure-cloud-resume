@@ -8,9 +8,9 @@ The visible site is a polished personal portfolio and a credible Cloud Resume Ch
 
 ## Current Status
 
-Current phase: Phase 5 - Testing and Terraform Infrastructure as Code.
+Current phase: Phase 5 - Terraform/IaC validated end to end; next planned phase is GitHub Actions CI/CD.
 
-The live project is working end to end:
+The original production project is working end to end:
 
 ```text
 Browser
@@ -34,6 +34,14 @@ Visitor counter API:
 https://func-hm-crc-eaene9aufsf4cmen.uaenorth-01.azurewebsites.net/api/visitor-count
 ```
 
+A fresh Terraform-managed Azure environment is also working end to end at:
+
+```text
+https://sacrcprod001.z1.web.core.windows.net/
+```
+
+This Terraform environment is separate from the current Cloudflare production site and should not be treated as the canonical public domain yet. The next engineer should read `notes/project-handoff.md` first, then `notes/ci-cd-plan.md`.
+
 ## Current Live Resources
 
 - DNS/CDN/TLS/proxy: Cloudflare
@@ -46,6 +54,22 @@ https://func-hm-crc-eaene9aufsf4cmen.uaenorth-01.azurewebsites.net/api/visitor-c
 - Cosmos table: `VisitorCounter`
 - Counter entity: `PartitionKey = site`, `RowKey = main`, `Count = incrementing`
 
+## Current Terraform-Managed Resources
+
+- Resource group: `rg-crc-prod`
+- Static website storage account: `sacrcprod001`
+- Static website endpoint: `https://sacrcprod001.z1.web.core.windows.net/`
+- Function App: `func-crc-prod`
+- Function hosting plan: Flex Consumption
+- Cosmos DB Table API account: `cosmos-crc-prod-001`
+- Cosmos table: `VisitorCounter`
+- Counter entity is created automatically by the Python Function if missing:
+  - `PartitionKey = site`
+  - `RowKey = main`
+  - `Count = incrementing`
+
+The Terraform-created frontend has been rebuilt and uploaded to the Terraform storage account `$web` container. Its visitor counter points to the Terraform-created Function App API.
+
 ## Codebase Shape
 
 - `frontend/` contains the Hugo static site source. Hugo builds static output into `frontend/public/`.
@@ -53,7 +77,7 @@ https://func-hm-crc-eaene9aufsf4cmen.uaenorth-01.azurewebsites.net/api/visitor-c
 - `frontend/layouts/partials/footer.html` is a project-level footer override that displays the visitor count.
 - `frontend/assets/css/custom.css` contains local visual overrides, including footer counter styling.
 - `backend/` contains the Azure Functions Python API.
-- `backend/function_app.py` defines the `GET /api/visitor-count` endpoint and increments the Cosmos DB Table count.
+- `backend/function_app.py` defines the `GET /api/visitor-count` endpoint, creates the visitor counter entity if missing, and increments the Cosmos DB Table count.
 - `backend/requirements.txt` includes `azure-functions` and `azure-data-tables`.
 - `backend/local.settings.json` is local-only and ignored by Git.
 - `infra/` is the Terraform work area for the next phase.
@@ -106,6 +130,21 @@ Known Python note:
 - Deployed Function App `func-hm-crc`.
 - Configured CORS for local Hugo and the live website.
 - Confirmed the live visitor counter increments Cosmos DB and displays on the site.
+- Provisioned a fresh Terraform-managed Azure environment without importing the old live resources.
+- Enabled static website hosting on Terraform storage account `sacrcprod001` and uploaded Hugo output.
+- Provisioned Terraform-managed Cosmos DB Table API and table `VisitorCounter`.
+- Updated backend code so the visitor counter entity is created automatically if missing.
+- Provisioned Terraform-managed Function App `func-crc-prod` on Flex Consumption.
+- Set `AZURE_TABLE_CONNECTION_STRING` manually as an Azure Function App setting.
+- Updated frontend JavaScript to call the Terraform-created Function API.
+- Confirmed the Terraform static website, Function App, and Cosmos DB counter work end to end.
+
+## Documentation Status
+
+- `README.md` is the quick orientation.
+- `notes/project-handoff.md` is the senior-engineer handover.
+- `notes/ci-cd-plan.md` is the planned GitHub Actions phase.
+- `notes/static-hosting-domain-cloudflare.md` remains focused on the current manual Cloudflare/public-domain setup.
 
 ## Terraform Decision
 
@@ -151,9 +190,17 @@ Frontend JavaScript must never talk directly to Cosmos DB. Browser traffic must 
 
 ## Next Tasks In Priority Order
 
-1. Add backend tests for visitor counter logic.
-2. Design Terraform for a fresh Azure environment in `infra/`.
-3. Keep current production resources untouched while Terraform is developed and tested.
-4. Plan CI/CD for frontend and backend deployment after Terraform is stable.
-5. Create an architecture diagram.
+1. Review and clean up Terraform code for naming consistency, comments, outputs, lifecycle handling, and beginner readability.
+2. Add backend tests for visitor counter logic, including the missing-entity create path.
+3. Design GitHub Actions workflows for frontend, backend, and Terraform; do not add workflow YAML until reviewed.
+4. Keep current Cloudflare production untouched until Terraform-managed CI/CD is proven.
+5. Create an architecture diagram showing both current production and Terraform-managed target architecture.
 6. Write the Cloud Resume Challenge case study/blog post.
+
+## Open Questions / Needs Confirmation
+
+- Exact GitHub Actions deployment method for Python Azure Functions on Flex Consumption.
+- Exact Hugo version to pin in CI.
+- Whether frontend CI should delete old blobs before upload or only overwrite.
+- How Terraform backend config should be supplied in GitHub Actions without relying on `infra/.debug-prod.sh`.
+- Whether to use separate Azure federated identities for frontend, backend, and Terraform workflows.
