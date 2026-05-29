@@ -1,0 +1,178 @@
+# Name shown in the GitHub Actions tab.
+name: Deploy Frontend CRC
+
+# "on" controls when this workflow runs.
+#
+# This workflow runs in two situations:
+# 1. Automatically after a push to the main branch, but only when frontend
+#    files or this workflow file changed.
+# 2. Manually from the GitHub Actions tab using the "Run workflow" button.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-deploy.yml"
+  workflow_dispatch:
+
+# These permissions are intentionally small.
+#
+# contents: read lets the runner download the repository code.
+# id-token: write lets GitHub request a short-lived OIDC token from Azure.
+# That OIDC token is what allows Azure login without storing an Azure password
+# or client secret in GitHub.
+permissions:
+  contents: read
+  id-token: write
+
+# env stores values reused by multiple steps.
+#
+# FRONTEND_PATH is where the Hugo site source lives.
+# STATIC_SITE_URL is the Azure Storage static website endpoint to test after deploy.
+# HUGO_VERSION pins CI to the same Hugo version used locally.
+# STATIC_WEBSITE_CONTAINER is Azure's special static website container.
+#
+# Important: the Azure container name is "$web". The dollar sign is part of
+# the real container name, so we keep it in one variable and reuse it carefully.
+env:
+  FRONTEND_PATH: frontend
+  STATIC_SITE_URL: https://sacrcprod001.z1.web.core.windows.net/
+  HUGO_VERSION: "0.161.1"
+  HUGO_ENV: production
+  HUGO_ENVIRONMENT: production
+  STATIC_WEBSITE_CONTAINER: "$web"
+
+jobs:
+  build-and-deploy:
+    name: Build Hugo site and deploy to Azure Storage web container
+
+    # GitHub creates a temporary Ubuntu machine for this job.
+    # Nothing on this runner is permanent; every run starts fresh.
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Download this repository onto the temporary runner.
+      # Without checkout, the runner has no access to frontend/, backend/, etc.
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Step 2: Install Go.
+      #
+      # This Hugo site uses Hugo Modules. You can see that in frontend/go.mod,
+      # where the Adritian theme is listed as a module dependency. Hugo uses Go
+      # behind the scenes to download and manage those theme files during build.
+      - name: Set up Go for Hugo Modules
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: frontend/go.mod
+          cache-dependency-path: frontend/go.sum
+
+      # Step 3: Install Node.js.
+      #
+      # The Adritian Hugo theme loads Bootstrap files from frontend/node_modules,
+      # so the workflow needs Node/npm before Hugo can build the site.
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      # Step 4: Install frontend dependencies from package-lock.json.
+      #
+      # npm ci is designed for CI/CD. It installs exactly what the lock file
+      # says and fails if package.json and package-lock.json disagree.
+      - name: Install frontend dependencies
+        working-directory: ${{ env.FRONTEND_PATH }}
+        run: npm ci
+
+      # Step 5: Install Hugo.
+      #
+      # extended: true is required because the theme compiles SCSS/Sass assets.
+      # Pinning the version avoids "works on my machine" differences later.
+      - name: Set up Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: ${{ env.HUGO_VERSION }}
+          extended: true
+
+      # Step 6: Build the static website.
+      #
+      # Hugo reads frontend/hugo.toml and writes plain HTML/CSS/JS/images into
+      # frontend/public/. Azure Storage hosts those generated files, not Hugo.
+      - name: Build Hugo site
+        working-directory: ${{ env.FRONTEND_PATH }}
+        run: hugo --minify
+
+      # Step 7: Fail early if Hugo did not create the expected output folder.
+      #
+      # This catches build/output problems before we touch Azure Storage.
+      - name: Confirm Hugo output exists
+        run: |
+          if [ ! -d "${{ env.FRONTEND_PATH }}/public" ]; then
+            echo "Hugo public folder was not created."
+            exit 1
+          fi
+
+          echo "Hugo build output found:"
+          ls -la "${{ env.FRONTEND_PATH }}/public"
+
+      # Step 8: Log in to Azure using OIDC.
+      #
+      # This uses the Azure app registration and federated credential you made.
+      # No Azure client secret or storage key is stored in this YAML file.
+      - name: Log in to Azure using OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+
+      # Step 9: Clear the existing files from the $web container.
+      #
+      # Why delete first? If an old page or image was removed from Hugo, upload
+      # alone would not remove the old blob from Azure Storage. Clearing first
+      # keeps the deployed site matching the latest Hugo build.
+      #
+      # --auth-mode login tells Azure CLI to use the OIDC login from Step 7.
+      - name: Clear existing files from web container
+        run: |
+            az storage blob delete-batch \
+              --account-name "${{ vars.AZURE_STORAGE_ACCOUNT }}" \
+              --source '${{ env.STATIC_WEBSITE_CONTAINER }}' \
+              --auth-mode login
+
+      # Step 10: Upload the new Hugo build to Azure Storage.
+      #
+      # The source is frontend/public, so Azure receives the contents of public:
+      # index.html, css/, js/, images/, and other generated files.
+      #
+      # The correct result is $web/index.html, not $web/public/index.html.
+      - name: Upload new Hugo build to Azure Storage
+        run: |
+            az storage blob upload-batch \
+              --account-name "${{ vars.AZURE_STORAGE_ACCOUNT }}" \
+              --destination '${{ env.STATIC_WEBSITE_CONTAINER }}' \
+              --source "${{ env.FRONTEND_PATH }}/public" \
+              --auth-mode login \
+              --overwrite
+
+      # Step 11: Smoke test the deployed static website.
+      #
+      # A smoke test is a small confidence check after deployment. Here we only
+      # verify that the static website endpoint returns a successful HTTP status.
+      # It does not replace full visual/browser testing.
+      - name: Smoke test static website
+        run: |
+          echo "Testing ${{ env.STATIC_SITE_URL }}"
+          HTTP_STATUS=$(curl -L -s -o /dev/null -w "%{http_code}" "${{ env.STATIC_SITE_URL }}")
+
+          echo "HTTP status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 400 ]; then
+            echo "Static website smoke test failed."
+            exit 1
+          fi
+
+          echo "Static website smoke test passed."
