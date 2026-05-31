@@ -1,0 +1,23 @@
+# Local Azure Functions settings can contain secrets, such as connection strings.
+local.settings.json
+
+# Local Python virtual environments should not be deployed.
+.venv/
+venv/
+env/
+
+# Python bytecode/cache folders are generated locally and are not source code.
+__pycache__/
+*.pyc
+
+# VS Code/project-local settings are useful locally but not needed in Azure.
+.vscode/
+
+# Azure Functions local/deployment output folders should not be repackaged.
+.python_packages/
+bin/
+obj/
+
+# Test output and local tooling artifacts should stay out of the deploy package.
+TestResults/
+.pytest_cache/

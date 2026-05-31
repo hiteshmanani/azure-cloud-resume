@@ -1,0 +1,136 @@
+# Name shown in the GitHub Actions tab.
+name: Deploy Backend CRC
+
+# "on" controls when this workflow runs.
+#
+# This backend workflow runs in two situations:
+# 1. Automatically after a push to the main branch, but only when backend files
+#    or this workflow file changed.
+# 2. Manually from the GitHub Actions tab using the "Run workflow" button.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-deploy.yml"
+  workflow_dispatch:
+
+# These permissions are intentionally small.
+#
+# contents: read lets the runner download the repository code.
+# id-token: write lets GitHub request a short-lived OIDC token from Azure.
+# The OIDC token lets the workflow sign in to Azure without storing a client
+# secret, publish profile, Function key, or password in GitHub.
+permissions:
+  contents: read
+  id-token: write
+
+# env stores values reused by multiple steps.
+#
+# BACKEND_PATH is where the Azure Functions project lives.
+# PYTHON_VERSION matches the runtime configured on the Azure Function App.
+# BACKEND_API_URL is the public anonymous HTTP endpoint used for a smoke test.
+env:
+  BACKEND_PATH: backend
+  PYTHON_VERSION: "3.12"
+  BACKEND_API_URL: https://${{ vars.AZURE_FUNCTION_APP_NAME }}.azurewebsites.net/api/visitor-count
+
+# concurrency prevents two backend deployments from running at the same time.
+# That avoids confusing race conditions if two pushes happen close together.
+concurrency:
+  group: backend-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy Python Azure Function App
+
+    # GitHub creates a temporary Ubuntu machine for this job.
+    # Nothing on this runner is permanent; each run starts fresh.
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Download this repository onto the temporary runner.
+      # Without checkout, the runner has no access to backend/function_app.py.
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Step 2: Install Python on the runner.
+      #
+      # The deployment itself uses Azure remote build, but setting up Python here
+      # lets us run a quick syntax check before deploying anything to Azure.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      # Step 3: Confirm the backend Python files can compile.
+      #
+      # This is not a full test suite. It is a lightweight safety check that
+      # catches syntax errors before the workflow deploys the Function App.
+      # We can add proper pytest unit tests later as the next improvement.
+      - name: Check Python syntax
+        run: python -m compileall "${{ env.BACKEND_PATH }}"
+
+      # Step 4: Log in to Azure using the backend app registration.
+      #
+      # Use AZURE_BACKEND_CLIENT_ID here, not the frontend client ID. Keeping
+      # separate app registrations makes the permissions easier to reason about:
+      # the frontend identity deploys static files, and this backend identity
+      # deploys the Azure Function App.
+      - name: Log in to Azure using OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_BACKEND_CLIENT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+
+      # Step 5: Confirm the target Function App exists.
+      #
+      # This does not deploy anything. It checks that the workflow can see the
+      # Function App before trying to publish code. If this fails, the usual
+      # causes are a wrong app name, wrong resource group, or missing Azure role
+      # assignment for the backend app registration.
+      - name: Confirm target Function App exists
+        run: |
+          az functionapp show \
+            --name "${{ vars.AZURE_FUNCTION_APP_NAME }}" \
+            --resource-group "${{ vars.AZURE_FUNCTION_APP_RESOURCE_GROUP }}" \
+            --query "{name:name, state:state, resourceGroup:resourceGroup}" \
+            --output table
+
+      # Step 6: Deploy the backend folder to the Azure Function App.
+      #
+      # package points at backend/, not the whole repository. That way only the
+      # Function App files are deployed.
+      #
+      # remote-build: true is important for Python on Linux/Flex Consumption.
+      # Azure performs the build in the correct Linux environment and installs
+      # dependencies from backend/requirements.txt during deployment.
+      #
+      # respect-funcignore: true tells the action to read backend/.funcignore so
+      # local-only files like .venv and local.settings.json are not packaged.
+      - name: Deploy backend to Azure Functions
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ vars.AZURE_FUNCTION_APP_NAME }}
+          package: ${{ env.BACKEND_PATH }}
+          remote-build: true
+          respect-funcignore: true
+
+      # Step 7: Smoke test the deployed visitor counter API.
+      #
+      # A smoke test is a small confidence check after deployment. This endpoint
+      # is anonymous, so no Function key is needed. It will increment the real
+      # Terraform-managed visitor counter once when the workflow runs.
+      - name: Smoke test visitor counter API
+        run: |
+          echo "Testing ${BACKEND_API_URL}"
+
+          RESPONSE_BODY=$(curl --fail --location --silent --show-error --max-time 30 "${BACKEND_API_URL}")
+
+          echo "API response:"
+          echo "${RESPONSE_BODY}"
+
+          echo "${RESPONSE_BODY}" | grep -q "visitor_count"
