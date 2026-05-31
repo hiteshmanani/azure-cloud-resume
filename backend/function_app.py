@@ -44,7 +44,8 @@ def visitor_count(req):
         )
 
     response_body = {
-        "visitor_count": new_count
+        "visitor_count": new_count,
+        "deployment": "github-actions-backend"
     }
 
     return func.HttpResponse(
