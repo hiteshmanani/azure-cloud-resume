@@ -31,6 +31,10 @@ resource "azurerm_storage_account" "main-crc-sa" {
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
 
+  custom_domain {
+    name = "www.hiteshmanani.com"
+  }
+
   tags = {
     environment = "prod"
     application = "crc"
