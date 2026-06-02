@@ -186,7 +186,9 @@ resource "azurerm_function_app_flex_consumption" "main-crc-funcapp" {
     cors {
       allowed_origins = [
         "http://localhost:1313",
-        trimsuffix(azurerm_storage_account.main-crc-sa.primary_web_endpoint, "/")
+        trimsuffix(azurerm_storage_account.main-crc-sa.primary_web_endpoint, "/"),
+        "https://www.hiteshmanani.com",
+        "https://hiteshmanani.com"
       ]
     }
   }

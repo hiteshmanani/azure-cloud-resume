@@ -125,9 +125,6 @@ jobs:
     
       # Step 8: Apply the saved Terraform plan.
       #
-      # -auto-approve is safe here only because approval should happen at the
-      # GitHub environment level before this job starts.
-      #
       # This is the step that can create, update, or delete Azure infrastructure.
       - name: Apply Terraform plan
         working-directory: ${{ env.INFRA_PATH }}
