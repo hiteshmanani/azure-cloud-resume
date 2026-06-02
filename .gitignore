@@ -26,6 +26,10 @@ frontend/node_modules/
 AGENTS.md
 TODO.md
 WORKING_NOTES.md
+static-hosting-domain-cloudflare.md
+site-content-brief.md
+project-handoff.md
+ci-cd-plan.md
 
 #Terraform shell script
 infra/.debug-prod.sh
