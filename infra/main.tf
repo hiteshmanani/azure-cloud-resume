@@ -14,7 +14,7 @@ resource "azurerm_resource_group" "main-rg" {
 # validate that the infrastructure is being provisioned correctly in Azure,
 
 resource "azurerm_resource_group" "test-rg" {
-  name     = "rg-${var.application_name}-${var.environment}-infra-w/f-test"
+  name     = "rg-${var.application_name}-${var.environment}-infra-workflow-test"
   location = var.primary_location
   tags = {
     environment = "prod"
