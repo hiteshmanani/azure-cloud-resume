@@ -12,16 +12,15 @@ resource "azurerm_resource_group" "main-rg" {
 
 #to test infra deployment github actions workflow changes and 
 # validate that the infrastructure is being provisioned correctly in Azure,
-
-resource "azurerm_resource_group" "test-rg" {
-  name     = "rg-${var.application_name}-${var.environment}-infra-workflow-test"
-  location = var.primary_location
-  tags = {
-    environment = "prod"
-    application = "crc"
-    created_by  = "terraform"
-  }
-}
+# resource "azurerm_resource_group" "test-rg" {
+#   name     = "rg-${var.application_name}-${var.environment}-infra-workflow-test"
+#   location = var.primary_location
+#   tags = {
+#     environment = "prod"
+#     application = "crc"
+#     created_by  = "terraform"
+#   }
+# }
 
 # 2. STORAGE ACCOUNT 
 resource "azurerm_storage_account" "main-crc-sa" {
