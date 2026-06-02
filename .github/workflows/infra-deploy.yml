@@ -1,0 +1,134 @@
+# Name shown in the GitHub Actions tab.
+name: Deploy Infrastructure CRC
+
+# "on" controls when this workflow runs.
+#
+# This workflow runs in two situations:
+# 1. Automatically after a push to main when Terraform files or this workflow
+#    file changed.
+# 2. Manually from the GitHub Actions tab using the "Run workflow" button.
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "infra/**"
+      - ".github/workflows/infra-deploy.yml"
+  workflow_dispatch:
+
+# contents: read lets the runner download the repository code.
+# id-token: write lets GitHub request a short-lived OIDC token from Azure.
+# Terraform then uses that OIDC login instead of a client secret.
+permissions:
+  contents: read
+  id-token: write
+
+# env stores values reused by multiple steps.
+#
+# INFRA_PATH is where the Terraform files live.
+# TF_IN_AUTOMATION tells Terraform it is running in CI/CD, which makes output
+# more automation-friendly.
+# ARM_* variables are how the azurerm Terraform provider authenticates to Azure.
+env:
+  INFRA_PATH: infra
+  TF_IN_AUTOMATION: true
+  ARM_USE_OIDC: true
+  ARM_CLIENT_ID: ${{ vars.AZURE_INFRA_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+# concurrency prevents two Terraform applies from running at the same time.
+# Infrastructure changes should be serialized so two runs do not fight over the
+# same remote state or Azure resources.
+concurrency:
+  group: terraform-infra
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Terraform plan
+
+    # GitHub creates a temporary Ubuntu machine for this job.
+    # Nothing on this runner is permanent; each run starts fresh.
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Download this repository onto the temporary runner.
+      # Without checkout, the runner has no access to infra/main.tf.
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Step 2: Install Terraform on the runner.
+      #
+      # setup-terraform adds the terraform command to PATH so later steps can
+      # run terraform fmt, init, validate, plan, and apply.
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # Step 3: Log in to Azure using the infra app registration.
+      #
+      # We use AZURE_INFRA_CLIENT_ID here, not the frontend or backend client ID.
+      # Terraform has broader permissions because it manages Azure resources.
+      - name: Log in to Azure using OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_INFRA_CLIENT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+
+      # Step 4: Check Terraform formatting.
+      #
+      # terraform fmt -check does not rewrite files. It only fails if the
+      # Terraform files are not formatted consistently.
+      - name: Check Terraform formatting
+        working-directory: ${{ env.INFRA_PATH }}
+        run: terraform fmt -check
+
+      # Step 5: Initialize Terraform and connect to the remote state backend.
+      #
+      # This is the GitHub Actions version of what our local .debug-prod.sh
+      # helper does for terraform init.
+      #
+      # The backend block in infra/versions.tf is intentionally empty. These
+      # backend values tell Terraform where the remote state file lives in Azure
+      # Storage.
+      - name: Initialize Terraform remote state
+        working-directory: ${{ env.INFRA_PATH }}
+        run: |
+          terraform init \
+            -backend-config="resource_group_name=${{ vars.TF_STATE_BACKEND_RESOURCE_GROUP }}" \
+            -backend-config="storage_account_name=${{ vars.TF_STATE_BACKEND_STORAGE_ACCOUNT_NAME }}" \
+            -backend-config="container_name=${{ vars.TF_STATE_BACKEND_CONTAINER_NAME }}" \
+            -backend-config="key=${{ vars.TF_STATE_BACKEND_KEY }}" \
+            -backend-config="use_oidc=true" \
+            -backend-config="tenant_id=${{ vars.AZURE_TENANT_ID }}" \
+            -backend-config="subscription_id=${{ vars.AZURE_SUBSCRIPTION_ID }}" \
+            -backend-config="client_id=${{ vars.AZURE_INFRA_CLIENT_ID }}"
+
+      # Step 6: Validate Terraform configuration.
+      #
+      # This checks whether the Terraform files are internally valid after init.
+      # It does not create, update, or delete Azure resources.
+      - name: Validate Terraform
+        working-directory: ${{ env.INFRA_PATH }}
+        run: terraform validate
+
+      # Step 7: Create a Terraform plan.
+      #
+      # The plan shows what Terraform intends to create, update, or delete.
+      # We save it as tfplan so the apply job can apply exactly this reviewed
+      # plan instead of recalculating a different one later.
+      - name: Create Terraform plan
+        working-directory: ${{ env.INFRA_PATH }}
+        run: terraform plan -out=tfplan
+
+    
+      # Step 8: Apply the saved Terraform plan.
+      #
+      # -auto-approve is safe here only because approval should happen at the
+      # GitHub environment level before this job starts.
+      #
+      # This is the step that can create, update, or delete Azure infrastructure.
+      - name: Apply Terraform plan
+        working-directory: ${{ env.INFRA_PATH }}
+        run: terraform apply -auto-approve tfplan
