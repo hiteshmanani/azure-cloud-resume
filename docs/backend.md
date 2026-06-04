@@ -73,7 +73,7 @@ http://localhost:7071/api/visitor-count
 
 The CORS flag allows the Hugo dev server to call the local Function host during development.
 
-## Deployment
+## Deployment Workflow
 
 The backend workflow runs a Python syntax check, authenticates to Azure through OIDC and Azure RBAC, deploys the `backend/` folder to `func-crc-prod`, and smoke tests the deployed endpoint.
 

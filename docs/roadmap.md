@@ -15,11 +15,6 @@ Azure Cloud Resume is live. The remaining work focuses on test depth, deployment
 - Consider GitHub environment approvals for Terraform apply.
 - Add Cloudflare cache purge automation with a narrowly scoped token. This is in progress and not yet part of the deployment workflow.
 
-## Domain And Edge
-
-- Harden root/apex redirect behavior if additional domain scenarios are added.
-- Keep Cloudflare as the public edge layer for DNS, proxying, TLS, redirects, and cache behavior.
-
 ## Operations
 
 - Add monitoring and alerts for the Function App.

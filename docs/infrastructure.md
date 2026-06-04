@@ -1,18 +1,18 @@
 # Infrastructure
 
-Terraform defines the Azure resources used by Azure Cloud Resume. The goal is repeatable infrastructure, not a portal-only build that is hard to review or recreate.
+Terraform defines the Azure resources used by Azure Cloud Resume. The goal was to build a repeatable infrastructure. 
 
 ## Managed Azure Resources
 
 Terraform manages:
 
-- Resource group.
+- Resource groups.
 - Azure Storage account for static website hosting.
 - Static website configuration.
 - Cosmos DB Table API account.
 - `VisitorCounter` table.
 - Storage account and container used by Azure Functions runtime/deployment packages.
-- Linux Flex Consumption service plan.
+- Linux Flex Consumption App service plan.
 - Python Azure Function App.
 - Function App CORS settings.
 

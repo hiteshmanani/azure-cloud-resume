@@ -1,6 +1,6 @@
 # Architecture
 
-Azure Cloud Resume is a static portfolio with a small serverless API behind it. The runtime path is intentionally narrow: Cloudflare handles the public edge, Azure Storage serves the static site, Azure Functions owns the API boundary, and Cosmos DB Table API stores the visitor counter.
+Azure Cloud Resume is a static portfolio with a serverless API behind it. The runtime path is intentionally narrow: Cloudflare handles the public edge, Azure Storage serves the static site, Azure Functions owns the API boundary, and Cosmos DB Table API stores the visitor counter.
 
 ## Production Architecture
 
@@ -115,6 +115,6 @@ The repository uses separate GitHub Actions workflows for frontend, backend, and
 
 Terraform manages the Azure infrastructure. Cloudflare remains manually managed in this project, which keeps the Cloudflare token surface out of the current CI/CD pipeline.
 
-## Migration Context
+<!-- ## Migration Context
 
-The project originally used manually created Azure resources. The final production setup now uses the Terraform-managed Azure Storage origin and Function App behind Cloudflare. The old manual resources are historical context, not the target production architecture.
+The project originally used manually created Azure resources. The final production setup now uses the Terraform-managed Azure Storage origin and Function App behind Cloudflare. The old manual resources are historical context, not the target production architecture. -->

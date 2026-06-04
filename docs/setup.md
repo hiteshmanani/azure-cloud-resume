@@ -123,7 +123,7 @@ terraform apply
 
 To reproduce the public domain setup, configure:
 
-- Cloudflare as authoritative DNS provider.
+- Cloudflare as authoritative DNS provider, [example article shows to to set up DNS records for your domain in a Cloudflare account if your domain is from another registrar](https://www.namecheap.com/support/knowledgebase/article.aspx/9607/2210/how-to-set-up-dns-records-for-your-domain-in-a-cloudflare-account/)
 - Proxied `www` CNAME to the Azure Storage static website endpoint.
 - Proxied apex record so Cloudflare can redirect the root domain to `www`.
 - Cloudflare HTTPS/TLS settings for browser-to-Cloudflare and Cloudflare-to-origin traffic.

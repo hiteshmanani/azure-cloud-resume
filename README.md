@@ -4,7 +4,7 @@
 [![Backend deployment](https://github.com/hitesh68333/azure-cloud-resume/actions/workflows/backend-deploy.yml/badge.svg)](https://github.com/hitesh68333/azure-cloud-resume/actions/workflows/backend-deploy.yml)
 [![Infrastructure deployment](https://github.com/hitesh68333/azure-cloud-resume/actions/workflows/infra-deploy.yml/badge.svg)](https://github.com/hitesh68333/azure-cloud-resume/actions/workflows/infra-deploy.yml)
 
-Azure Cloud Resume is a personal portfolio website and cloud engineering project built on Azure. It combines a Hugo-generated static site, Azure Storage Static Website hosting, a Python Azure Functions API, Cosmos DB Table API, Terraform-managed infrastructure, GitHub Actions CI/CD, and Cloudflare for DNS, proxying, caching, and TLS.
+Azure Cloud Resume is a personal portfolio blog and cloud engineering project built on Azure. It combines a Hugo-generated static site, Azure Storage Static Website hosting, a Python Azure Functions API, Cosmos DB Table API, Terraform-managed infrastructure, GitHub Actions CI/CD, and Cloudflare for DNS, proxying, caching, and TLS.
 
 Live site:
 
@@ -167,16 +167,16 @@ This project is sized for a low-traffic personal portfolio:
 - Cosmos DB Table API stores a tiny counter dataset with a simple access pattern.
 - Cloudflare provides DNS, proxying, TLS, and redirects without adding Azure Front Door fixed costs for this use case.
 
-The architecture favors a maintainable learning project over unnecessary platform complexity.
+The architecture favors a maintainable portfolio site over unnecessary platform complexity.
 
-## Key Implementation Decisions
+<!-- ## Key Implementation Decisions
 
 - Use Azure Storage for static hosting and Cloudflare for the public edge.
 - Keep Cloudflare manual for now instead of adding another Terraform provider and token.
 - Rebuild Azure infrastructure with Terraform rather than importing the original manually created resources.
 - Use a Python Function API between the browser and Cosmos DB.
 - Use GitHub OIDC and Azure RBAC for workflow authentication.
-- Keep frontend, backend, and infrastructure deployment workflows separate.
+- Keep frontend, backend, and infrastructure deployment workflows separate. -->
 
 ## Local Development
 
@@ -208,7 +208,7 @@ See [Setup](docs/setup.md), [Frontend](docs/frontend.md), and [Backend](docs/bac
 
 ## Known Limitations
 
-- Backend tests are currently lighter than the deployment surface deserves.
+- Backend tests are currently lighter, and further tests will be added. 
 - End-to-end browser smoke tests are not yet part of CI/CD.
 - Cloudflare cache purge automation is in progress and not yet part of the workflows.
 - Monitoring and alerting can be improved beyond the current baseline.
@@ -230,17 +230,17 @@ See [Roadmap](docs/roadmap.md).
 - Infrastructure is easier to review and rebuild when it is created and deployed through Terraform.
 - CI/CD permissions are easier to reason about when frontend, backend, and infrastructure workflows use separate identities.
 - OIDC reduces secret management risk for GitHub Actions.
-- Architecture decisions changed as the project hit real constraints: custom-domain cutover, Cloudflare behavior, Azure Storage host validation, Terraform state, and cost tradeoffs all shaped the final design.
+<!-- - Architecture decisions changed as the project hit real constraints: custom-domain cutover, Cloudflare behavior, Azure Storage host validation, Terraform state, and cost tradeoffs all shaped the final design. -->
 
-## Interview-Ready Explanation
+## ELI5
 
 Azure Cloud Resume is a static portfolio hosted on Azure Storage and fronted by Cloudflare. The site includes a visitor counter, but the browser never talks directly to the database. Instead, JavaScript calls a Python Azure Function, and the Function updates a Cosmos DB Table API record.
 
 The infrastructure is managed with Terraform, and deployments are handled by GitHub Actions. Each workflow authenticates to Azure through OIDC and Azure RBAC rather than long-lived credentials. Cloudflare handles DNS, HTTPS, proxying, caching, and the root-to-www redirect, which kept the public edge practical for a low-traffic portfolio while preserving Azure as the core hosting platform.
 
-## Acknowledgement
+<!-- ## Acknowledgement
 
-This project was inspired by the broader cloud resume project format and adapted into an Azure portfolio and engineering documentation project.
+This project was inspired by the broader cloud resume project format and adapted into an Azure personal portfolio site and engineering documentation project. -->
 
 ## License
 
@@ -256,3 +256,4 @@ Credits:
 - [Terraform AzureRM provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 - [GitHub Actions OIDC with Azure](https://learn.microsoft.com/azure/developer/github/connect-from-azure-openid-connect)
 - [Cloudflare documentation](https://developers.cloudflare.com/)
+- [Forrest Brazeal](https://forrestbrazeal.com/)

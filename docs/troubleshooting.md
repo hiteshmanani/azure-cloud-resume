@@ -23,6 +23,7 @@ Cloudflare forwards Host: <your-custom-domain>
 Target Azure Storage account does not recognize <your-custom-domain>
 Azure Storage rejects the request
 ```
+![Azure Storage Custom Domain invalid URI error](docs/images/custom-domain-error.png)
 
 Fix:
 
@@ -30,6 +31,8 @@ Fix:
 - Confirm the target storage account has the custom domain configured.
 - Confirm the custom domain configuration is on the new target account, not only on the old account.
 - Re-run Terraform plan after adding the storage account `custom_domain` configuration and confirm it shows no unexpected changes.
+
+![Azure Storage Custom Domain](docs/images/custom-domain-sa.png)
 
 ## CORS Error From Browser
 
