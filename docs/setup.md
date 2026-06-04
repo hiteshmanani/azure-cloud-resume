@@ -1,46 +1,44 @@
 # Setup
 
-This page explains the tools and local setup needed to work with the project. It intentionally uses placeholders for values that are specific to an Azure subscription or Cloudflare account.
+This page covers the local tools and environment assumptions needed to work with Azure Cloud Resume.
 
 ## Required Tools
 
-Install these before working with the full project:
-
 - Git
-- VS Code
+- VS Code or another editor
 - Azure CLI
 - Terraform
-- Python 3.12 or compatible Azure Functions Python runtime
+- Python 3.12 or a compatible Azure Functions Python runtime
 - Azure Functions Core Tools
 - Node.js and npm
 - Hugo extended
-- Go, used by Hugo Modules for the Adritian theme
+- Go for Hugo Modules
 
-You also need:
+You also need an Azure subscription. A custom domain and Cloudflare account are required only if you want to reproduce the public domain setup.
 
-- An Azure account and subscription.
-- A domain name if you want a custom domain.
-- A Cloudflare account if you want to match this project's DNS/proxy/TLS setup.
+## Azure Login
 
-## Safe Login
-
-For local Azure work, use interactive Azure CLI login:
+Use Azure CLI for local authentication:
 
 ```bash
 az login
 az account set --subscription "<AZURE_SUBSCRIPTION_ID>"
 ```
 
-Do not commit subscription IDs, tenant IDs, client IDs, client secrets, connection strings, access keys, or tokens.
+Confirm the active subscription before running Terraform or Azure CLI deployment commands:
 
-## Clone The Repository
+```bash
+az account show --output table
+```
+
+## Clone
 
 ```bash
 git clone <REPOSITORY_URL>
-cd personal_website
+cd azure-cloud-resume
 ```
 
-## Frontend Setup
+## Frontend
 
 ```bash
 cd frontend
@@ -48,15 +46,15 @@ npm ci
 hugo server
 ```
 
-Open:
+Local site:
 
 ```text
 http://localhost:1313/
 ```
 
-Hugo writes generated output to `frontend/public/` when you build the site. Do not edit or commit that folder.
+Hugo generates `frontend/public/` only when the site is built. It is expected to be absent in a fresh clone.
 
-## Backend Setup
+## Backend
 
 ```bash
 cd backend
@@ -71,7 +69,7 @@ Local API:
 http://localhost:7071/api/visitor-count
 ```
 
-Create `backend/local.settings.json` locally if you need to run the Function against your own Cosmos DB Table API account.
+Local Function settings are stored in `backend/local.settings.json`. The file should contain local values only, including the Cosmos DB Table API connection string for the account you are testing against.
 
 Example shape:
 
@@ -86,22 +84,22 @@ Example shape:
 }
 ```
 
-Do not commit `local.settings.json`.
+## Terraform Remote State Prerequisite
 
-## Terraform Setup
+This project uses Terraform remote state with the AzureRM backend. The remote state storage account and blob container must exist before running `terraform init` for the main infrastructure.
 
-Terraform lives in `infra/`.
-
-Before running Terraform, replace project-specific values with your own:
+At minimum, prepare:
 
 ```text
-<RESOURCE_GROUP_NAME>
-<STORAGE_ACCOUNT_NAME>
-<FUNCTION_APP_NAME>
-<COSMOS_CONNECTION_STRING>
+<TF_STATE_RESOURCE_GROUP>
+<TF_STATE_STORAGE_ACCOUNT>
+<TF_STATE_CONTAINER>
+<TF_STATE_KEY>
 ```
 
-Remote state backend values are supplied during `terraform init`. Use placeholders in documentation and secure values locally or in GitHub repository variables:
+The state backend is separate from the application infrastructure. This keeps Terraform state available across local runs and GitHub Actions workflow runs.
+
+## Terraform
 
 ```bash
 cd infra
@@ -115,32 +113,18 @@ terraform validate
 terraform plan
 ```
 
-Run `terraform apply` only when you have reviewed the plan and understand the Azure resources that will change.
+Apply only after reviewing the plan:
 
-## Cloudflare And Domain Setup
+```bash
+terraform apply
+```
 
-To match the production architecture, you need:
+## Domain And Cloudflare
 
-- A registered domain.
-- Cloudflare as the authoritative DNS provider.
-- A proxied `www` CNAME pointing to your Azure Storage static website endpoint.
-- A root/apex redirect to `www`.
-- Cloudflare SSL/TLS mode set appropriately for HTTPS to the Azure Storage origin.
+To reproduce the public domain setup, configure:
 
-If future automation is added, use a limited Cloudflare token such as `<CLOUDFLARE_API_TOKEN>` stored securely outside the repository.
-
-## Secret Handling Checklist
-
-Never commit:
-
-- `backend/local.settings.json`
-- Cosmos DB connection strings
-- Azure storage keys
-- Function keys
-- Azure tenant IDs, subscription IDs, client secrets, or credentials
-- Cloudflare API tokens
-- Terraform state or plan files
-- `.terraform/`
-- `.venv/`
-- `frontend/public/`
-- `frontend/node_modules/`
+- Cloudflare as authoritative DNS provider.
+- Proxied `www` CNAME to the Azure Storage static website endpoint.
+- Proxied apex record so Cloudflare can redirect the root domain to `www`.
+- Cloudflare HTTPS/TLS settings for browser-to-Cloudflare and Cloudflare-to-origin traffic.
+- Azure Storage custom domain configuration for the public host.

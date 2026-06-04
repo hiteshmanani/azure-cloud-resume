@@ -1,77 +1,71 @@
 # CI/CD
 
-This repository uses GitHub Actions for frontend deployment, backend deployment, and infrastructure deployment.
+GitHub Actions deploys the frontend, backend, and infrastructure through separate workflows. The split keeps each pipeline focused and gives each Azure identity a narrow responsibility.
 
-The workflows live in:
+Workflow files:
 
 ```text
-.github/workflows/
+.github/workflows/frontend-deploy.yml
+.github/workflows/backend-deploy.yml
+.github/workflows/infra-deploy.yml
 ```
 
 ## Workflow Overview
 
-| Workflow | Purpose | Main trigger |
+| Workflow | Trigger scope | Azure responsibility |
 | --- | --- | --- |
-| `frontend-deploy.yml` | Build Hugo and deploy static files to Azure Storage | Changes under `frontend/**` |
-| `backend-deploy.yml` | Validate and deploy Python Azure Functions backend | Changes under `backend/**` |
-| `infra-deploy.yml` | Run Terraform checks, plan, and apply | Changes under `infra/**` |
+| `frontend-deploy.yml` | `frontend/**` | Upload Hugo build output to Azure Storage Static Website |
+| `backend-deploy.yml` | `backend/**` | Deploy the Python Azure Function App |
+| `infra-deploy.yml` | `infra/**` | Run Terraform checks, plan, and apply |
 
-Each workflow also supports `workflow_dispatch`, which allows a manual run from the GitHub Actions tab.
+Each workflow also supports manual execution with `workflow_dispatch`.
 
 ## CI/CD Flow Diagram
 
+Each workflow branch authenticates before it performs Azure actions. The diagram repeats the OIDC, Microsoft Entra ID, and Azure RBAC path per branch so the authorization boundary is explicit.
+
 ```mermaid
 flowchart TD
-  dev["Developer pushes to main"] --> actions["GitHub Actions"]
+  push["Developer pushes to main"] --> actions["GitHub Actions"]
   actions --> filters["Path filters"]
 
   filters --> frontend["Frontend workflow<br/>frontend/**"]
   frontend --> npm["npm ci"]
   npm --> hugo["Hugo build"]
-  hugo --> upload["Upload frontend/public/<br/>to Azure Storage $web"]
+  hugo --> fOidc["GitHub OIDC"]
+  fOidc --> fEntra["Microsoft Entra ID<br/>frontend app registration"]
+  fEntra --> fRbac["Azure RBAC"]
+  fRbac --> upload["Upload frontend/public output<br/>to Azure Storage $web"]
   upload --> frontendSmoke["Smoke test static site"]
 
   filters --> backend["Backend workflow<br/>backend/**"]
-  backend --> pychecks["Python checks / tests"]
-  pychecks --> deployFunction["Deploy Azure Function<br/>func-crc-prod"]
+  backend --> pychecks["Python checks"]
+  pychecks --> bOidc["GitHub OIDC"]
+  bOidc --> bEntra["Microsoft Entra ID<br/>backend app registration"]
+  bEntra --> bRbac["Azure RBAC"]
+  bRbac --> deployFunction["Deploy Azure Function<br/>func-crc-prod"]
   deployFunction --> backendSmoke["Smoke test API"]
 
   filters --> infra["Infrastructure workflow<br/>infra/**"]
   infra --> tfFmt["terraform fmt"]
-  tfFmt --> tfInit["terraform init"]
+  tfFmt --> iOidc["GitHub OIDC"]
+  iOidc --> iEntra["Microsoft Entra ID<br/>infrastructure app registration"]
+  iEntra --> iRbac["Azure RBAC"]
+  iRbac --> tfInit["terraform init"]
   tfInit --> tfValidate["terraform validate"]
   tfValidate --> tfPlan["terraform plan"]
   tfPlan --> tfApply["terraform apply"]
-
-  actions -.-> oidc["GitHub OIDC"]
-  oidc -.-> entra["Azure Entra ID<br/>app registrations"]
-  entra -.-> rbac["Azure RBAC"]
-  rbac -.-> resources["Azure resources"]
-
-  frontendSmoke -.-> resources
-  backendSmoke -.-> resources
-  tfApply -.-> resources
 ```
 
-## OIDC Authentication
+## Authentication And Authorization
 
-The workflows authenticate to Azure using GitHub Actions OIDC/federated credentials.
+The workflows use GitHub OIDC with Microsoft Entra ID federated credentials. GitHub requests a short-lived token for the workflow run, Microsoft Entra ID validates the federated credential, and Azure RBAC determines what the workflow identity can do.
 
-Beginner-friendly version:
-
-1. GitHub starts a workflow run.
-2. The workflow requests a short-lived identity token from GitHub.
-3. Azure trusts that token only when it matches a configured federated credential.
-4. Azure issues temporary access for the workflow's app registration.
-5. The workflow deploys without using a stored Azure client secret.
-
-This is safer than storing long-lived Azure client secrets in GitHub.
+The repository uses separate identities for frontend, backend, and infrastructure deployment. This keeps permissions easier to audit than using one broad identity for every workflow.
 
 ## Repository Variables
 
-The workflows use GitHub repository variables for non-secret IDs and resource names.
-
-Required variables:
+The workflows use GitHub repository variables for Azure resource names and identity metadata:
 
 ```text
 AZURE_CLIENT_ID
@@ -88,94 +82,60 @@ TF_STATE_BACKEND_CONTAINER_NAME
 TF_STATE_BACKEND_KEY
 ```
 
-Do not write the actual values in public documentation.
-
-## Repository Secrets
-
-No GitHub secrets are currently required for the Azure OIDC login flow.
-
-The Cosmos DB Table API connection string is not stored in GitHub workflow YAML. It is expected to exist in Azure Function App settings.
-
-If Cloudflare purge automation is added later, use a limited-scope token stored as a GitHub secret such as:
-
-```text
-CLOUDFLARE_API_TOKEN
-```
-
-Do not add that token unless purge automation is actually implemented.
+The Cosmos DB Table API connection string is not supplied by the workflow. It is configured on the deployed Function App.
 
 ## Frontend Workflow
 
-The frontend workflow:
+The frontend workflow installs dependencies, builds the Hugo site, and publishes the generated output to the Azure Storage `$web` container.
 
-1. Checks out the repository.
-2. Sets up Go for Hugo Modules.
-3. Sets up Node.js.
-4. Runs `npm ci` in `frontend/`.
-5. Installs Hugo extended.
-6. Runs `hugo --minify`.
-7. Confirms `frontend/public/` exists.
-8. Logs in to Azure with OIDC.
-9. Clears old blobs from the `$web` container.
-10. Uploads generated files from `frontend/public/`.
-11. Smoke tests the Azure Storage static website endpoint.
+Deployment shape:
 
-The workflow uploads the contents of `frontend/public/`, not the folder itself.
+```text
+frontend source
+-> npm ci
+-> hugo --minify
+-> frontend/public/
+-> Azure Storage $web
+-> static site smoke test
+```
+
+The workflow uploads the contents of `frontend/public/`. It does not upload the `public` directory as a nested folder.
 
 ## Backend Workflow
 
-The backend workflow:
+The backend workflow validates Python syntax, deploys the Function App, and calls the live visitor counter endpoint as a smoke test.
 
-1. Checks out the repository.
-2. Sets up Python 3.12.
-3. Runs `python -m compileall backend`.
-4. Logs in to Azure with the backend app registration.
-5. Confirms the target Function App exists.
-6. Deploys `backend/` to Azure Functions with remote build.
-7. Smoke tests the visitor counter API.
+Deployment shape:
 
-The smoke test calls the real anonymous endpoint and checks for `visitor_count` in the response.
+```text
+backend source
+-> Python checks
+-> Azure Functions deployment
+-> GET /api/visitor-count smoke test
+```
+
+The smoke test confirms the endpoint responds with `visitor_count`. It also increments the deployed counter once per successful backend deployment.
 
 ## Infrastructure Workflow
 
-The infrastructure workflow:
+The infrastructure workflow runs Terraform against the remote state backend:
 
-1. Checks out the repository.
-2. Sets up Terraform.
-3. Logs in to Azure with the infrastructure app registration.
-4. Runs `terraform fmt -check`.
-5. Runs `terraform init` with remote state backend configuration.
-6. Runs `terraform validate`.
-7. Runs `terraform plan -out=tfplan`.
-8. Runs `terraform apply -auto-approve tfplan`.
+```text
+terraform fmt -check
+terraform init
+terraform validate
+terraform plan -out=tfplan
+terraform apply -auto-approve tfplan
+```
 
-Because apply is automated on `main`, infrastructure changes should be reviewed carefully before merge.
+Because this workflow applies changes on `main`, infrastructure pull requests should be reviewed carefully before merge.
 
-## Path Filters
+## Failure Points Worth Checking
 
-Path filters keep workflows focused:
-
-- Frontend changes do not run Terraform.
-- Backend changes do not deploy frontend files.
-- Infrastructure changes do not redeploy application code.
-
-This separation keeps CI/CD faster and makes permissions easier to reason about.
-
-## Smoke Tests
-
-Current smoke tests are intentionally lightweight:
-
-- Frontend: confirms the Azure Storage static website endpoint returns a successful HTTP status.
-- Backend: confirms the visitor counter API returns JSON containing `visitor_count`.
-- Infrastructure: validates Terraform and applies the reviewed plan.
-
-Future improvements could add browser-based tests, API contract tests, and post-apply infrastructure checks.
-
-## Troubleshooting Failed Workflows
-
-- OIDC login failure: check federated credential subject, app registration client ID, tenant ID, and repository variables.
-- Frontend build failure: check Hugo version, Node dependencies, Go/Hugo module resolution, and theme assets.
-- Storage upload failure: confirm the deployment identity has data-plane permission such as Storage Blob Data Contributor.
-- Backend deployment failure: confirm the Function App exists and the backend identity has deployment permission.
-- Backend smoke test failure: check Function App settings, especially `AZURE_TABLE_CONNECTION_STRING`, and CORS if the browser is failing.
-- Terraform init failure: check remote state backend variables and the infrastructure identity's permissions.
+| Failure | First places to check |
+| --- | --- |
+| OIDC login failure | Federated credential subject, workflow permissions, app registration client ID, repository variables |
+| Frontend deployment failure | Hugo build output, Azure Storage RBAC, `$web` upload step |
+| Backend deployment failure | Function App name, resource group, deployment identity permissions, remote build logs |
+| API smoke test failure | Function App settings, Cosmos DB Table API connection, Function logs |
+| Terraform failure | Remote state backend values, provider initialization, infrastructure identity permissions |

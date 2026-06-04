@@ -1,6 +1,10 @@
-# Azure Cloud Resume Challenge - Hitesh Manani
+# Azure Cloud Resume
 
-This repository is my completed Azure Cloud Resume Challenge project: a personal portfolio website built with Hugo, hosted on Azure Storage Static Website, fronted by Cloudflare, and extended with a serverless visitor counter.
+[![Frontend deployment](https://github.com/hitesh68333/azure-cloud-resume/actions/workflows/frontend-deploy.yml/badge.svg)](https://github.com/hitesh68333/azure-cloud-resume/actions/workflows/frontend-deploy.yml)
+[![Backend deployment](https://github.com/hitesh68333/azure-cloud-resume/actions/workflows/backend-deploy.yml/badge.svg)](https://github.com/hitesh68333/azure-cloud-resume/actions/workflows/backend-deploy.yml)
+[![Infrastructure deployment](https://github.com/hitesh68333/azure-cloud-resume/actions/workflows/infra-deploy.yml/badge.svg)](https://github.com/hitesh68333/azure-cloud-resume/actions/workflows/infra-deploy.yml)
+
+Azure Cloud Resume is a personal portfolio website and cloud engineering project built on Azure. It combines a Hugo-generated static site, Azure Storage Static Website hosting, a Python Azure Functions API, Cosmos DB Table API, Terraform-managed infrastructure, GitHub Actions CI/CD, and Cloudflare for DNS, proxying, caching, and TLS.
 
 Live site:
 
@@ -8,194 +12,173 @@ Live site:
 https://www.hiteshmanani.com
 ```
 
-The project is designed to be useful in two ways:
+## Architecture
 
-- As a public portfolio project that demonstrates practical Azure, infrastructure, CI/CD, and security decisions.
-- As a learning reference for other cloud learners who want to understand how the pieces fit together.
+![Production architecture diagram](docs/images/production-architecture.drawio.png)
 
-## What This Project Demonstrates
+The public site is served from Azure Storage through Cloudflare. The visitor counter runs through a server-side API boundary: browser JavaScript calls the Azure Function, and the Function updates Cosmos DB Table API. This keeps database access out of the browser while preserving a simple static-site hosting model.
 
-- Static site generation with Hugo and the Adritian theme.
-- Static website hosting on Azure Storage.
-- Custom domain, DNS, CDN/proxy, and TLS through Cloudflare.
-- A JavaScript visitor counter on the frontend.
-- A Python Azure Functions HTTP API backend.
-- Cosmos DB Table API for persistent visitor count storage.
-- Terraform-managed Azure infrastructure.
-- GitHub Actions CI/CD for frontend, backend, and infrastructure.
-- GitHub Actions authentication to Azure using OIDC/federated credentials instead of long-lived client secrets.
+Detailed documentation:
 
-## Architecture Overview
+- [Architecture](docs/architecture.md)
+- [CI/CD flow](docs/ci-cd.md)
+- [Domain and Cloudflare](docs/domain-cloudflare.md)
+- [Security](docs/security.md)
 
-Current production request flow:
+## Architecture At A Glance
+
+| Area | Implementation |
+| --- | --- |
+| Public domain | `https://www.hiteshmanani.com` |
+| Edge layer | Cloudflare DNS, CDN/proxy, TLS, and root-to-www redirect |
+| Static hosting | Azure Storage Static Website |
+| Frontend | Hugo-generated HTML, CSS, and JavaScript |
+| Visitor counter UI | Browser JavaScript in the site footer |
+| API | Python Azure Functions HTTP trigger |
+| Database | Azure Cosmos DB Table API, `VisitorCounter` table |
+| Infrastructure | Terraform-managed Azure resources |
+| CI/CD | GitHub Actions workflows for frontend, backend, and infrastructure |
+| Azure auth from CI/CD | GitHub OIDC, Microsoft Entra ID app registrations, and Azure RBAC |
+
+## How The System Works
+
+Runtime request flow:
 
 ```text
 Browser
 -> Cloudflare DNS/CDN/proxy/TLS
 -> Azure Storage Static Website
--> Hugo-generated HTML/CSS/JavaScript
--> Azure Function HTTP API
--> Python visitor counter backend
--> Azure Cosmos DB Table API
+-> Hugo-generated static assets
+-> JavaScript visitor counter
+-> Azure Function App: func-crc-prod
+-> Python HTTP API
+-> Cosmos DB Table API: VisitorCounter
 ```
 
-The public website is served from Azure Storage through Cloudflare. The visitor counter does not connect to the database from the browser. Instead, frontend JavaScript calls an anonymous HTTP endpoint on the Azure Function App, and the Function App updates the Cosmos DB Table API entity.
+The frontend is static. Azure Storage serves the generated site files from the `$web` container. Cloudflare sits in front of the storage origin to handle DNS, HTTPS, proxying, caching, and the root-domain redirect.
 
-The detailed diagrams live in the public docs:
-
-- [Production architecture](docs/architecture.md)
-- [CI/CD flow](docs/ci-cd.md)
-- [Manual-to-Terraform cutover](docs/domain-cloudflare.md)
-- [Security](docs/security.md)
+The visitor counter is intentionally not a direct browser-to-database integration. The browser calls `GET /api/visitor-count`; the Python Function reads and updates the counter entity in Cosmos DB Table API, then returns a small JSON response to the site.
 
 ## Tech Stack
 
-| Area | Technology | Purpose |
+| Layer | Technology | Role |
 | --- | --- | --- |
-| Frontend | Hugo | Generates the static portfolio website |
-| Theme | Adritian Hugo theme | Base portfolio theme and layout system |
-| Frontend assets | HTML, CSS, JavaScript | Static browser experience and visitor counter call |
-| Hosting | Azure Storage Static Website | Serves generated static files from the `$web` container |
-| Edge/DNS/TLS | Cloudflare | DNS, CDN/proxy, HTTPS, and root-to-www redirect |
-| Backend | Python Azure Functions | HTTP API for visitor counter updates |
-| Database | Azure Cosmos DB Table API | Stores the visitor counter entity |
-| Infrastructure | Terraform | Provisions Azure resources reproducibly |
-| CI/CD | GitHub Actions | Builds, validates, deploys, and smoke tests changes |
-| Auth for CI/CD | GitHub OIDC to Azure | Avoids long-lived Azure client secrets in GitHub |
+| Static site generator | Hugo | Builds the portfolio into static HTML, CSS, JavaScript, and assets |
+| Frontend runtime | HTML, CSS, JavaScript | Delivers the portfolio experience and visitor counter call |
+| Static hosting | Azure Storage Static Website | Hosts generated files from the `$web` container |
+| Edge and DNS | Cloudflare | Provides DNS, CDN/proxy behavior, TLS, and redirects |
+| API backend | Python Azure Functions | Handles visitor counter requests and database updates |
+| Data store | Azure Cosmos DB Table API | Stores the persistent visitor count |
+| Infrastructure as Code | Terraform | Defines and deploys Azure resources |
+| CI/CD | GitHub Actions | Builds, deploys, validates, and smoke tests changes |
+| CI/CD authentication | GitHub OIDC with Microsoft Entra ID and Azure RBAC | Authenticates workflows without long-lived Azure client secrets |
 
 ## Repository Structure
 
 ```text
 .
-├── .github/workflows/      GitHub Actions workflows
-├── backend/                Python Azure Functions visitor counter API
-├── docs/                   Public project documentation
-├── frontend/               Hugo static site source
-├── infra/                  Terraform Azure infrastructure
-├── notes/                  Internal working notes and handoff material
-├── .gitignore
-└── README.md
+├── .github/workflows/      CI/CD workflows
+├── backend/                Python Azure Functions app
+│   ├── function_app.py     Visitor counter HTTP trigger
+│   ├── host.json           Function host configuration
+│   └── requirements.txt    Python dependencies
+├── docs/                   Public engineering documentation
+│   └── images/             Architecture images
+├── frontend/               Hugo site source
+│   ├── content/            Site content
+│   ├── layouts/            Project layout overrides
+│   ├── assets/             CSS and image assets processed by Hugo
+│   └── static/             Static files copied into the generated site
+├── infra/                  Terraform configuration
+└── README.md               Project entry point
 ```
 
-The `notes/` folder contains working notes from the build process. Those files are useful history, but the public documentation starts with this README and the `docs/` folder.
+Hugo generates `frontend/public/` during a local or CI build. That folder is build output, so it is not part of the source tree shown above.
 
-## Frontend
+## CI/CD Flow
 
-The frontend lives in `frontend/` and is built with Hugo. Hugo reads content, layouts, static files, and theme dependencies, then generates static output into `frontend/public/`.
+Each workflow authenticates to Azure before performing Azure actions. The frontend, backend, and infrastructure branches all pass through GitHub OIDC, Microsoft Entra ID app registrations, and Azure RBAC.
 
-Important points:
+```mermaid
+flowchart TD
+  push["Developer pushes to main"] --> actions["GitHub Actions"]
+  actions --> filters["Path filters"]
 
-- Edit Hugo source files, not `frontend/public/`.
-- `frontend/public/` is generated output and should not be committed.
-- The visitor counter script lives at `frontend/static/js/visitor-count.js`.
-- The footer integration lives in `frontend/layouts/partials/footer.html`.
-- In local development, the visitor counter calls `http://localhost:7071/api/visitor-count`.
-- In production, it calls `https://func-crc-prod.azurewebsites.net/api/visitor-count`.
+  filters --> frontend["Frontend workflow"]
+  frontend --> frontendAuth["GitHub OIDC<br/>Microsoft Entra ID app registration<br/>Azure RBAC"]
+  frontendAuth --> npm["npm ci"]
+  npm --> hugo["Hugo build"]
+  hugo --> upload["Upload frontend/public output<br/>to Azure Storage $web"]
+  upload --> staticSmoke["Smoke test static site"]
 
-See [Frontend](docs/frontend.md).
+  filters --> backend["Backend workflow"]
+  backend --> backendAuth["GitHub OIDC<br/>Microsoft Entra ID app registration<br/>Azure RBAC"]
+  backendAuth --> pythonChecks["Python checks"]
+  pythonChecks --> deployFunction["Deploy Azure Function<br/>func-crc-prod"]
+  deployFunction --> apiSmoke["Smoke test visitor counter API"]
 
-## Backend API
-
-The backend lives in `backend/` and uses the Azure Functions Python v2 programming model.
-
-The API exposes:
-
-```text
-GET /api/visitor-count
+  filters --> infra["Infrastructure workflow"]
+  infra --> infraAuth["GitHub OIDC<br/>Microsoft Entra ID app registration<br/>Azure RBAC"]
+  infraAuth --> fmt["terraform fmt"]
+  fmt --> init["terraform init"]
+  init --> validate["terraform validate"]
+  validate --> plan["terraform plan"]
+  plan --> apply["terraform apply"]
 ```
 
-The Function App reads `AZURE_TABLE_CONNECTION_STRING` from environment settings, connects to the `VisitorCounter` table, increments the entity for the main site counter, and returns JSON:
-
-```json
-{
-  "visitor_count": 123
-}
-```
-
-The connection string is not committed. It belongs in local settings for local development and in Azure Function App settings or another secure store for deployed environments.
-
-See [Backend](docs/backend.md).
-
-## Visitor Counter
-
-The visitor counter uses a small API boundary on purpose:
-
-```text
-Browser JavaScript
--> Azure Function HTTP endpoint
--> Python backend
--> Cosmos DB Table API
-```
-
-The browser must not connect directly to Cosmos DB because that would expose credentials and database access to every site visitor. The Azure Function is the controlled server-side layer that owns the connection string and database update logic.
-
-The counter record is stored in the `VisitorCounter` table as:
-
-```text
-PartitionKey = site
-RowKey       = main
-Count        = incrementing integer
-```
-
-If the entity does not exist, the backend creates it with a starting count of `1`.
-
-## Infrastructure With Terraform
-
-Terraform files live in `infra/`. Terraform manages the Azure infrastructure for the production environment, including:
-
-- Resource group.
-- Azure Storage account for static website hosting.
-- Static website configuration and custom domain mapping.
-- Cosmos DB Table API account and table.
-- Storage for Azure Functions runtime/deployment packages.
-- Linux Flex Consumption Function App.
-- CORS configuration for the Function App.
-
-Terraform remote state uses the `azurerm` backend. State files and plans must not be committed because Terraform state can contain sensitive values.
-
-See [Infrastructure](docs/infrastructure.md).
-
-## CI/CD With GitHub Actions
-
-The repository includes three workflow groups:
-
-- Frontend workflow: builds Hugo, uploads generated files to the Azure Storage `$web` container, and smoke tests the static site endpoint.
-- Backend workflow: checks Python syntax, deploys the Function App, and smoke tests the visitor counter API.
-- Infrastructure workflow: runs Terraform format, init, validate, plan, and apply.
-
-GitHub Actions logs in to Azure using OIDC/federated credentials. This avoids storing long-lived Azure client secrets in GitHub.
+The workflows are intentionally separated by responsibility. Frontend changes build and publish static files. Backend changes deploy the Function App. Infrastructure changes run Terraform checks and apply the reviewed plan.
 
 See [CI/CD](docs/ci-cd.md).
 
-## Security Notes
+## Infrastructure As Code
 
-This project intentionally keeps secrets out of the repository:
+Terraform defines the Azure resources used by the project:
 
-- No Cosmos DB connection strings.
-- No Azure tenant IDs, subscription IDs, client secrets, or storage keys.
-- No Function keys.
-- No Cloudflare API tokens.
-- No `backend/local.settings.json`.
-- No Terraform state or plan files.
+- Resource group.
+- Static website storage account.
+- Cosmos DB Table API account and `VisitorCounter` table.
+- Function App hosting resources.
+- Python Function App.
+- Function App CORS configuration.
 
-Cloudflare is currently managed manually. If Cloudflare cache purge automation is added later, it should use a limited-scope Cloudflare API token stored securely outside the repository.
+Terraform remote state is stored outside the repository. Application secrets, including the Cosmos DB Table API connection string, are managed through Function App settings rather than committed Terraform files.
+
+See [Infrastructure](docs/infrastructure.md).
+
+## Security Considerations
+
+The security model is intentionally simple and explicit:
+
+- The browser receives only static files and calls the public HTTP API.
+- Cosmos DB credentials stay server-side in Azure Function App settings.
+- GitHub Actions authenticates to Azure with OIDC rather than stored client secrets.
+- Separate Azure identities are used for frontend deployment, backend deployment, and infrastructure deployment.
+- Function App CORS is scoped to the expected local and production origins.
+- Terraform state is treated as sensitive and stored remotely.
 
 See [Security](docs/security.md).
 
-## Cost Notes
+## Cost-Conscious Design Choices
 
-This project is designed for a low-traffic personal portfolio:
+This project is sized for a low-traffic personal portfolio:
 
-- Azure Storage Static Website is a cost-effective static hosting origin.
-- Azure Functions Flex Consumption keeps backend cost tied to usage.
-- Cosmos DB Table API stores a tiny amount of data for the counter.
-- Cloudflare Free is used for DNS, proxy/CDN, TLS, and redirects.
+- Azure Storage Static Website keeps the web origin simple and inexpensive.
+- Azure Functions avoids running a dedicated web server for a small API.
+- Cosmos DB Table API stores a tiny counter dataset with a simple access pattern.
+- Cloudflare provides DNS, proxying, TLS, and redirects without adding Azure Front Door fixed costs for this use case.
 
-Costs still depend on region, usage, logs, retention, and Azure subscription settings. Anyone reusing this project should review Azure pricing and set budgets or alerts.
+The architecture favors a maintainable learning project over unnecessary platform complexity.
+
+## Key Implementation Decisions
+
+- Use Azure Storage for static hosting and Cloudflare for the public edge.
+- Keep Cloudflare manual for now instead of adding another Terraform provider and token.
+- Rebuild Azure infrastructure with Terraform rather than importing the original manually created resources.
+- Use a Python Function API between the browser and Cosmos DB.
+- Use GitHub OIDC and Azure RBAC for workflow authentication.
+- Keep frontend, backend, and infrastructure deployment workflows separate.
 
 ## Local Development
-
-Prerequisites are documented in [Setup](docs/setup.md).
 
 Frontend:
 
@@ -205,81 +188,66 @@ npm ci
 hugo server
 ```
 
-Open:
-
-```text
-http://localhost:1313/
-```
-
 Backend:
 
 ```bash
 cd backend
 python -m venv .venv
-# Activate the virtual environment for your shell.
 pip install -r requirements.txt
 func start --cors http://localhost:1313
 ```
 
-Local API:
+Local endpoints:
 
 ```text
-http://localhost:7071/api/visitor-count
+Frontend: http://localhost:1313/
+Backend:  http://localhost:7071/api/visitor-count
 ```
 
-Create `backend/local.settings.json` locally with your own placeholder values. Do not commit it.
+See [Setup](docs/setup.md), [Frontend](docs/frontend.md), and [Backend](docs/backend.md).
 
-## Deployment Overview
+## Known Limitations
 
-High-level deployment flow:
+- Backend tests are currently lighter than the deployment surface deserves.
+- End-to-end browser smoke tests are not yet part of CI/CD.
+- Cloudflare cache purge automation is in progress and not yet part of the workflows.
+- Monitoring and alerting can be improved beyond the current baseline.
 
-```text
-Frontend source change
--> GitHub Actions
--> Hugo build
--> Upload frontend/public/ contents to Azure Storage $web
--> Smoke test static website endpoint
+## Future Improvements
 
-Backend source change
--> GitHub Actions
--> Python syntax check
--> Deploy Azure Function App
--> Smoke test visitor counter API
-
-Infrastructure change
--> GitHub Actions
--> terraform fmt/init/validate/plan/apply
--> Azure infrastructure updated
-```
-
-Cloudflare DNS, proxy, TLS, and redirects are managed outside Terraform for now.
-
-## Known Limitations And Future Improvements
-
-- Mermaid diagrams are now embedded in the docs; they can be exported to PNG/SVG or recreated in draw.io for presentations.
-- Backend unit tests can be expanded with mocked Table API calls.
-- End-to-end browser smoke tests would provide stronger deployment confidence.
-- Cloudflare cache purge is manual today.
-- Monitoring and alerting can be improved.
-- A full case study/blog post would make the project easier to discuss in interviews.
+- Add stronger Python unit tests for visitor counter create and increment paths.
+- Add browser-level smoke tests for the deployed website.
+- Add Cloudflare cache purge automation with a narrowly scoped token.
+- Add operational monitoring and alerting for the Function App.
+- Publish a concise project case study that explains the architecture decisions and tradeoffs.
 
 See [Roadmap](docs/roadmap.md).
 
-## Learning Outcomes
+## Lessons Learned
 
-This project helped me practice:
+- Creating an API boundary is essential when browser code needs to trigger a database-backed operation.
+- Static hosting, serverless compute, and table storage work well together when each component has a narrow responsibility.
+- Infrastructure is easier to review and rebuild when it is created and deployed through Terraform.
+- CI/CD permissions are easier to reason about when frontend, backend, and infrastructure workflows use separate identities.
+- OIDC reduces secret management risk for GitHub Actions.
+- Architecture decisions changed as the project hit real constraints: custom-domain cutover, Cloudflare behavior, Azure Storage host validation, Terraform state, and cost tradeoffs all shaped the final design.
 
-- Explaining cloud architecture clearly.
-- Separating static hosting, serverless API, and database responsibilities.
-- Using an API layer to protect database credentials.
-- Managing infrastructure with Terraform.
-- Designing CI/CD workflows with separate responsibilities and permissions.
-- Using OIDC for safer GitHub Actions authentication to Azure.
-- Making practical cost and platform tradeoffs, including Cloudflare instead of Azure Front Door for this use case.
+## Interview-Ready Explanation
 
-## Credits And References
+Azure Cloud Resume is a static portfolio hosted on Azure Storage and fronted by Cloudflare. The site includes a visitor counter, but the browser never talks directly to the database. Instead, JavaScript calls a Python Azure Function, and the Function updates a Cosmos DB Table API record.
 
-- [Cloud Resume Challenge](https://cloudresumechallenge.dev/)
+The infrastructure is managed with Terraform, and deployments are handled by GitHub Actions. Each workflow authenticates to Azure through OIDC and Azure RBAC rather than long-lived credentials. Cloudflare handles DNS, HTTPS, proxying, caching, and the root-to-www redirect, which kept the public edge practical for a low-traffic portfolio while preserving Azure as the core hosting platform.
+
+## Acknowledgement
+
+This project was inspired by the broader cloud resume project format and adapted into an Azure portfolio and engineering documentation project.
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+
+Credits:
+
 - [Hugo](https://gohugo.io/)
 - [Adritian Hugo theme](https://github.com/zetxek/adritian-free-hugo-theme)
 - [Azure Storage Static Website documentation](https://learn.microsoft.com/azure/storage/blobs/storage-blob-static-website)
@@ -288,10 +256,3 @@ This project helped me practice:
 - [Terraform AzureRM provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs)
 - [GitHub Actions OIDC with Azure](https://learn.microsoft.com/azure/developer/github/connect-from-azure-openid-connect)
 - [Cloudflare documentation](https://developers.cloudflare.com/)
-
-## Manual TODOs
-
-- TODO: Optionally export Mermaid diagrams to `docs/images/` as PNG/SVG for richer visual presentation.
-- TODO: Optionally create a polished draw.io architecture diagram for presentations or a case study.
-- TODO: Add screenshots for Cloudflare DNS, Azure Storage static website, Function App settings, and GitHub Actions runs if desired.
-- TODO: Verify whether legacy/manual Azure resources should be deleted after the rollback window.

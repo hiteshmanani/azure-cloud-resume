@@ -1,42 +1,41 @@
 # Infrastructure
 
-Terraform for this project lives in `infra/`. It defines the Azure infrastructure for the production Cloud Resume Challenge environment.
+Terraform defines the Azure resources used by Azure Cloud Resume. The goal is repeatable infrastructure, not a portal-only build that is hard to review or recreate.
 
-## What Terraform Manages
+## Managed Azure Resources
 
-Terraform manages Azure resources including:
+Terraform manages:
 
 - Resource group.
 - Azure Storage account for static website hosting.
 - Static website configuration.
-- Azure Storage custom domain mapping for `www.hiteshmanani.com`.
 - Cosmos DB Table API account.
 - `VisitorCounter` table.
-- Storage account and blob container used by Azure Functions runtime/deployment packages.
+- Storage account and container used by Azure Functions runtime/deployment packages.
 - Linux Flex Consumption service plan.
 - Python Azure Function App.
 - Function App CORS settings.
 
-Cloudflare is not managed by Terraform in this project. DNS, proxy/TLS, redirects, and cache behavior are configured manually in Cloudflare.
+Cloudflare is managed outside Terraform in this project.
 
-## Important Files
+## Terraform Files
 
-- `infra/main.tf` defines Azure resources.
-- `infra/variables.tf` defines input variables.
-- `infra/terraform.tfvars` contains non-secret project values.
-- `infra/outputs.tf` exposes useful output values.
-- `infra/versions.tf` pins provider/backend configuration.
-- `infra/.terraform.lock.hcl` locks provider selections.
-
-Do not commit local state, generated plans, or `.terraform/` directories.
+| Path | Purpose |
+| --- | --- |
+| `infra/main.tf` | Azure resource definitions |
+| `infra/variables.tf` | Input variables |
+| `infra/terraform.tfvars` | Non-secret project values |
+| `infra/outputs.tf` | Terraform outputs |
+| `infra/versions.tf` | Provider and backend configuration |
+| `infra/.terraform.lock.hcl` | Locked provider selections |
 
 ## Remote State
 
-Terraform state tracks real infrastructure. It can contain sensitive values and should be treated carefully.
+Terraform uses the `azurerm` backend for remote state. The backend block is intentionally empty in `versions.tf`; backend values are supplied during `terraform init`.
 
-This project uses the Terraform `azurerm` backend. The backend block is intentionally configured through backend values supplied at `terraform init` time.
+The remote state backend must exist before the main infrastructure can be initialized. In practice, that means an Azure Storage account and blob container are prepared for the Terraform state file before running the project Terraform configuration.
 
-Example placeholder command:
+Example initialization shape:
 
 ```bash
 cd infra
@@ -47,60 +46,35 @@ terraform init \
   -backend-config="key=<TF_STATE_KEY>"
 ```
 
-Never commit:
+## Secrets And State
 
-- `.terraform/`
-- `*.tfstate`
-- `*.tfstate.backup`
-- `*.tfplan`
-- debug scripts containing environment-specific values
+The Cosmos DB Table API connection string is configured on the Function App, not committed into Terraform code.
 
-## Secrets And Terraform
+Terraform state can still contain sensitive resource data. Treat access to the remote state backend as privileged access.
 
-Application secrets should not be placed directly into Terraform unless there is a deliberate secret-management design.
+## Command Flow
 
-For this project, the Cosmos DB Table API connection string is stored in Azure Function App settings outside committed Terraform code. The Terraform code intentionally avoids committing the value of `AZURE_TABLE_CONNECTION_STRING`.
-
-Terraform state can capture sensitive values if they are managed by Terraform, so treat state storage as sensitive even when the `.tf` files look safe.
-
-## Common Commands
-
-Format:
+Typical local review flow:
 
 ```bash
 cd infra
 terraform fmt
-```
-
-Initialize:
-
-```bash
 terraform init
-```
-
-Validate:
-
-```bash
 terraform validate
-```
-
-Plan:
-
-```bash
 terraform plan
 ```
 
-Apply:
+Apply only after reviewing the plan:
 
 ```bash
 terraform apply
 ```
 
-Review plans before applying. Infrastructure changes can create, update, or destroy Azure resources.
+The GitHub Actions infrastructure workflow runs the same core checks and applies the saved plan from the workflow.
 
-## Customizing Resource Names
+## Naming And Reuse
 
-Azure resource names are globally unique in some services, especially storage accounts and Cosmos DB accounts. Anyone reusing this repository must customize names such as:
+Some Azure names must be globally unique, especially storage accounts and Cosmos DB accounts. Anyone reusing the project should change names such as:
 
 ```text
 <RESOURCE_GROUP_NAME>
@@ -109,14 +83,10 @@ Azure resource names are globally unique in some services, especially storage ac
 <COSMOS_ACCOUNT_NAME>
 ```
 
-The current project uses Terraform-managed names such as `sacrcprod001` and `func-crc-prod`, but those should not be copied blindly into another Azure subscription.
+The current production names, such as `sacrcprod001` and `func-crc-prod`, document this deployment. They should not be copied directly into a separate Azure subscription.
 
-## Custom Domain Mapping
+## Operational Notes
 
-The Terraform-managed static website storage account includes a custom domain mapping for:
-
-```text
-www.hiteshmanani.com
-```
-
-This matters because Azure Storage needs to recognize the incoming host header. Cloudflare can proxy traffic to Azure, but Azure Storage still needs the custom domain configured or it can reject the request.
+- Review Terraform plans before merge because the CI workflow applies infrastructure changes on `main`.
+- Keep application secrets in the service configuration layer, not in Terraform variables committed to the repository.
+- Keep Cloudflare changes coordinated with Azure Storage custom-domain configuration, but document those steps in the domain and troubleshooting docs rather than this Terraform reference.

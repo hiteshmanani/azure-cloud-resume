@@ -1,55 +1,27 @@
 # Roadmap
 
-The core Azure Cloud Resume Challenge implementation is live. The remaining improvements are mostly about polish, testing depth, operations, and storytelling.
-
-## Documentation And Presentation
-
-- Export Mermaid diagrams to PNG/SVG for richer visual presentation if desired.
-- Optionally create a polished draw.io architecture diagram for presentations or blog posts.
-- Write a Cloud Resume Challenge case study or blog post.
-- Add selected screenshots after checking that they reveal no secrets.
-- Prepare a short interview-ready explanation of the architecture and tradeoffs.
+Azure Cloud Resume is live. The remaining work focuses on test depth, deployment polish, and operations.
 
 ## Testing
 
-- Add stronger Python unit tests for the visitor counter.
-- Mock Cosmos DB Table API calls for create and increment paths.
+- Add stronger Python unit tests for visitor counter create and increment paths.
+- Mock Cosmos DB Table API calls in backend tests.
 - Add API response-shape tests.
 - Add end-to-end smoke tests for the deployed website and visitor counter.
-- Consider a browser-based test that checks the footer counter renders successfully.
+- Add a browser-level check that confirms the footer counter renders after deployment.
 
 ## CI/CD Improvements
 
 - Consider GitHub environment approvals for Terraform apply.
-- Add clearer workflow summaries or deployment notes.
-- Add optional Cloudflare cache purge automation with a limited token.
-- Keep path filters so frontend, backend, and infrastructure changes remain separate.
+- Add Cloudflare cache purge automation with a narrowly scoped token. This is in progress and not yet part of the deployment workflow.
 
 ## Domain And Edge
 
-- Harden root/apex redirect behavior if needed.
-- Document final DNS screenshots.
-- Keep Cloudflare as the current edge layer.
-- Optionally compare Azure Front Door for learning purposes, while keeping Cloudflare as the final production choice unless the project direction changes.
+- Harden root/apex redirect behavior if additional domain scenarios are added.
+- Keep Cloudflare as the public edge layer for DNS, proxying, TLS, redirects, and cache behavior.
 
 ## Operations
 
 - Add monitoring and alerts for the Function App.
 - Review Application Insights settings and log retention.
-- Add budget alerts in Azure.
-- Document a simple rollback plan for frontend, backend, and infrastructure.
-
-## Website Quality
-
-- Run accessibility checks.
-- Run performance checks.
-- Review SEO metadata and social preview images.
-- Replace placeholder blog/theme sample content if any remains visible.
-- Improve portfolio project writeups over time.
-
-## Analytics And Logging
-
-- Consider privacy-conscious analytics.
-- Keep visitor counter separate from full analytics.
-- Avoid logging secrets or personally sensitive data.
-- Document any future analytics choice clearly.
+- Document the operational checks used after frontend, backend, and infrastructure deployments.

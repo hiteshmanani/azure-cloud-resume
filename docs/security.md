@@ -1,110 +1,60 @@
 # Security
 
-This project is public-facing, so the documentation and repository are written with secret handling in mind.
+Azure Cloud Resume is public-facing, so the security model focuses on clear boundaries: static files are public, database access is server-side, deployment identities are scoped, and infrastructure state is treated as sensitive.
 
-## No Secrets In GitHub
+## Application Boundary
 
-Do not commit:
+The browser downloads static files from Azure Storage and calls the visitor counter API. It does not receive Cosmos DB credentials and does not connect directly to the database.
 
-- Cosmos DB connection strings.
+The Azure Function owns the database operation:
+
+```text
+Browser
+-> Azure Function HTTP API
+-> Cosmos DB Table API
+```
+
+This keeps the counter implementation simple while preserving a server-side control point for the database connection string.
+
+## Secret Handling
+
+Sensitive values are kept out of source control:
+
+- Cosmos DB Table API connection string.
 - Azure storage keys.
 - Function keys.
 - Azure client secrets.
-- Azure tenant IDs or subscription IDs.
 - Cloudflare API tokens.
 - GitHub tokens.
-- `backend/local.settings.json`.
-- Terraform state or plan files.
+- Terraform state and plan files.
+- Local Function settings.
 
-Use placeholders in docs:
+The Cosmos DB Table API connection string is configured as an Azure Function App application setting in production. Local development uses `backend/local.settings.json`.
 
-```text
-<AZURE_SUBSCRIPTION_ID>
-<RESOURCE_GROUP_NAME>
-<STORAGE_ACCOUNT_NAME>
-<FUNCTION_APP_NAME>
-<COSMOS_CONNECTION_STRING>
-<CLOUDFLARE_API_TOKEN>
-```
+## CI/CD Authentication
 
-## OIDC Instead Of Client Secrets
+GitHub Actions authenticates to Azure with OIDC and Microsoft Entra ID federated credentials. The workflows do not need long-lived Azure client secrets.
 
-GitHub Actions authenticates to Azure with OIDC/federated credentials. This lets GitHub request short-lived Azure tokens during workflow runs.
+The deployment model uses separate Azure identities for:
 
-The benefit is simple: the repository does not need long-lived Azure client secrets for CI/CD.
+- Frontend deployment to Azure Storage.
+- Backend deployment to Azure Functions.
+- Infrastructure deployment with Terraform.
 
-## Separate Deployment Identities
+This separation keeps permissions easier to review and limits the blast radius of each workflow identity.
 
-The workflows use separate Azure app registrations/identities for different responsibilities:
+## CORS
 
-- Frontend deployment identity for Azure Storage upload.
-- Backend deployment identity for Azure Functions deployment.
-- Infrastructure identity for Terraform.
+The Function App CORS configuration allows the expected local and production origins. CORS is not the main security boundary, but it helps keep browser access scoped to the intended site origins.
 
-This separation makes least privilege easier to reason about. Terraform usually needs broader permissions than a static-site upload workflow, so it should not share the same identity if avoidable.
+## Static Website Hosting
 
-## CORS Restrictions
+Azure Storage Static Website is intentionally public for generated site files. The deployment workflow uploads Hugo build output, not repository internals or local configuration.
 
-The Function App allows expected origins such as:
+## Terraform State
 
-- Local Hugo development at `http://localhost:1313`.
-- The Azure Storage static website endpoint.
-- `https://www.hiteshmanani.com`.
-- `https://hiteshmanani.com`.
+Terraform state can contain sensitive resource data even when secrets are not written directly into `.tf` files. Access to the remote state backend should be limited to identities that need infrastructure visibility or deployment permissions.
 
-CORS does not replace authentication or secret management, but it helps ensure browser calls come from expected origins.
+## Cloudflare Token Scope
 
-## Static Website Public Access
-
-Azure Storage Static Website is intentionally public for generated website files. That public access is for static content only.
-
-Secrets and source-only files should not be uploaded to `$web`. The deployment process should upload Hugo-generated output from `frontend/public/`, not repository internals or local settings.
-
-## Cosmos DB Connection String Handling
-
-The Cosmos DB Table API connection string is used by the Azure Function backend. It must stay server-side.
-
-Appropriate locations:
-
-- Local `backend/local.settings.json` during development.
-- Azure Function App application settings in production.
-- A secure secret store if the project later adopts one.
-
-Inappropriate locations:
-
-- Frontend JavaScript.
-- Markdown docs.
-- Terraform files committed to Git.
-- GitHub Actions YAML.
-
-## Terraform State Sensitivity
-
-Terraform state can contain resource details and sensitive values. Even when secrets are not written directly into `.tf` files, state should still be treated as sensitive.
-
-Do not commit:
-
-```text
-.terraform/
-*.tfstate
-*.tfstate.backup
-*.tfplan
-```
-
-## Cloudflare Token Warning
-
-Cloudflare is manually managed today. No Cloudflare API token is required for the current deployment flow.
-
-If future cache purge automation is added, create a limited-scope Cloudflare API token and store it securely as a GitHub secret. Do not commit or print the token.
-
-## Public Documentation Review Checklist
-
-Before publishing, check that docs do not include:
-
-- Real tenant IDs.
-- Real subscription IDs.
-- Client IDs if you prefer to keep them private.
-- Connection strings.
-- Storage keys.
-- Function keys.
-- Cloudflare tokens.
-- Screenshots that reveal secrets or account identifiers.
+Cloudflare is manually managed in the current deployment flow. Cache purge automation is planned, and when it is added it should use a narrowly scoped Cloudflare token stored outside the repository.

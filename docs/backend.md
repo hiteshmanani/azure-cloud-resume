@@ -1,40 +1,23 @@
 # Backend
 
-The backend is a Python Azure Functions app. It lives in `backend/` and provides the HTTP API used by the frontend visitor counter.
+The backend is a Python Azure Functions app that provides the visitor counter API. It is intentionally small: one HTTP endpoint owns the counter update and keeps Cosmos DB access server-side.
 
 ## Source Layout
 
-Important files:
+| Path | Purpose |
+| --- | --- |
+| `backend/function_app.py` | Defines the HTTP-triggered visitor counter function |
+| `backend/requirements.txt` | Python dependencies for Azure Functions and Azure Tables |
+| `backend/host.json` | Azure Functions host configuration |
+| `backend/.funcignore` | Excludes local-only files from deployment packages |
 
-- `backend/function_app.py` defines the HTTP-triggered visitor counter function.
-- `backend/requirements.txt` lists Python dependencies.
-- `backend/host.json` contains Azure Functions host configuration.
-- `backend/.funcignore` excludes local-only files from deployment packages.
-- `backend/local.settings.json` is used only for local development and must not be committed.
-
-## Endpoint
-
-The backend exposes:
+## API
 
 ```text
 GET /api/visitor-count
 ```
 
-The route is anonymous because the public website needs to call it from a visitor's browser. The backend still protects the database because the Cosmos DB connection string stays server-side in Function App settings.
-
-## Runtime Behavior
-
-On each request, the function:
-
-1. Reads `AZURE_TABLE_CONNECTION_STRING` from environment variables.
-2. Connects to the `VisitorCounter` table.
-3. Reads the entity with `PartitionKey = site` and `RowKey = main`.
-4. Converts the stored `Count` value to an integer.
-5. Increments and updates the entity.
-6. Creates the entity with `Count = 1` if it does not exist.
-7. Returns JSON with the new count.
-
-Response shape:
+Response:
 
 ```json
 {
@@ -42,19 +25,36 @@ Response shape:
 }
 ```
 
-## Environment Variables
+The endpoint is anonymous because it is called by the public website. The database connection remains protected because the Function App holds the Cosmos DB Table API connection string in server-side application settings.
 
-Required:
+## Runtime Behavior
+
+On each request, the Function:
+
+1. Reads `AZURE_TABLE_CONNECTION_STRING` from the Function App environment.
+2. Connects to the `VisitorCounter` table.
+3. Reads the `site/main` counter entity.
+4. Increments `Count` if the entity exists.
+5. Creates the entity with `Count = 1` if it is missing.
+6. Returns the updated count as JSON.
+
+Counter entity:
+
+```text
+PartitionKey = site
+RowKey       = main
+Count        = incrementing integer
+```
+
+## Configuration
+
+Required application setting:
 
 ```text
 AZURE_TABLE_CONNECTION_STRING=<COSMOS_CONNECTION_STRING>
 ```
 
-Do not expose or commit the connection string. Store it in:
-
-- `backend/local.settings.json` for local development.
-- Azure Function App application settings for production.
-- A secure secret store if the project later adopts one.
+Local development uses `backend/local.settings.json`. Production uses Azure Function App application settings. The frontend never receives this value.
 
 ## Local Development
 
@@ -71,30 +71,17 @@ Local endpoint:
 http://localhost:7071/api/visitor-count
 ```
 
-When running the frontend locally at `http://localhost:1313`, the `--cors` flag allows the browser to call the local Function host.
+The CORS flag allows the Hugo dev server to call the local Function host during development.
 
 ## Deployment
 
-The backend GitHub Actions workflow:
+The backend workflow runs a Python syntax check, authenticates to Azure through OIDC and Azure RBAC, deploys the `backend/` folder to `func-crc-prod`, and smoke tests the deployed endpoint.
 
-- Checks out the repository.
-- Sets up Python 3.12.
-- Runs a syntax check with `python -m compileall backend`.
-- Logs in to Azure using OIDC.
-- Confirms the target Function App exists.
-- Deploys the `backend/` folder to Azure Functions.
-- Smoke tests the visitor counter API.
+The smoke test calls the production API and checks for `visitor_count` in the response. That validates the deployed Function path, but it also increments the counter once per successful backend deployment.
 
-The production Function App name is documented as:
+## Operational Notes
 
-```text
-func-crc-prod
-```
-
-## Common Troubleshooting
-
-- Missing `AZURE_TABLE_CONNECTION_STRING`: the function will fail before it can connect to Cosmos DB.
-- Wrong table name or account: the function may fail to read or create the counter entity.
-- CORS failure: the browser call is blocked before the response reaches frontend JavaScript.
-- Deployment failure: confirm the GitHub Actions identity has permission to deploy to the Function App.
-- Smoke test increments production count: the current smoke test calls the real anonymous endpoint, so it increments the visitor counter once per backend deployment.
+- If the endpoint fails before returning JSON, check the Function App setting for `AZURE_TABLE_CONNECTION_STRING`.
+- If the endpoint returns an error after connecting, check the Cosmos DB Table API account and the `VisitorCounter` table.
+- If the browser call fails but `curl` succeeds, check Function App CORS settings.
+- If deployment fails, check the backend workflow logs and the Azure RBAC permissions for the backend deployment identity.
