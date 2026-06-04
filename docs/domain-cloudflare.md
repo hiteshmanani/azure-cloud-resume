@@ -44,7 +44,7 @@ Proxy: Proxied
 
 `192.0.2.1` is documentation/example address space. It is not the website origin. The record exists so Cloudflare can process apex requests and redirect them to `www`.
 
-![Cloudflare config](docs/images/cloudflare.png)
+![Cloudflare config](images/cloudflare.png)
 
 ## Azure Storage Custom Domain
 
