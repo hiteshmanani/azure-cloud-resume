@@ -1,4 +1,4 @@
-module github.com/hitesh68333/azure-cloud-resume/frontend
+module github.com/hiteshmanani/azure-cloud-resume/frontend
 
 go 1.26.2
 

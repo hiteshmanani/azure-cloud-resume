@@ -79,7 +79,7 @@ twitter = ''
 [params.seo.person]
 name = 'Hitesh Manani'
 url = 'https://hiteshmanani.com'
-sameAs = ['https://www.linkedin.com/in/hiteshmanani/', 'https://github.com/hitesh68333']
+sameAs = ['https://www.linkedin.com/in/hiteshmanani/', 'https://github.com/hiteshmanani']
 sections = [
   "showcase",
   "about",

@@ -18,7 +18,7 @@ render = "never"
 
 {{< platform-links >}}
     {{< link icon="linkedin" url="https://www.linkedin.com/in/hiteshmanani" >}}
-    {{< link icon="square-github" url="https://github.com/hitesh68333" >}}
+    {{< link icon="square-github" url="https://github.com/hiteshmanani" >}}
 {{< /platform-links >}}
 
 {{< /showcase-section >}}

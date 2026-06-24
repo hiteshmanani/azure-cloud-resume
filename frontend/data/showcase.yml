@@ -1,22 +1,22 @@
 sites:
   - name: "Azure Cloud Resume Challenge"
-    url: "https://github.com/hitesh68333/personal_website"
+    url: "https://github.com/hiteshmanani/personal_website"
     description: "A hands-on Azure portfolio project using Hugo, static hosting, serverless APIs, a database-backed visitor counter, infrastructure as code, and CI/CD."
-    github: "hitesh68333"
-    repo: "hitesh68333/personal_website"
+    github: "hiteshmanani"
+    repo: "hiteshmanani/personal_website"
     tags: [azure, serverless, hugo, ci-cd]
 
   - name: "Azure VM Patching Automation"
-    url: "https://github.com/hitesh68333"
+    url: "https://github.com/hiteshmanani"
     description: "Placeholder for an Azure operations automation project using Logic Apps, Event Hub, Azure Update Manager, Resource Graph, Managed Identity, and safe patching workflows."
-    github: "hitesh68333"
-    repo: "hitesh68333"
+    github: "hiteshmanani"
+    repo: "hiteshmanani"
     tags: [azure, automation, operations]
 
   - name: "Azure-hosted AI Platform Delivery"
-    url: "https://github.com/hitesh68333"
+    url: "https://github.com/hiteshmanani"
     description: "Placeholder for a case study on product assurance, rollout readiness, stakeholder communication, and Azure platform delivery for an AI product environment."
-    github: "hitesh68333"
-    repo: "hitesh68333"
+    github: "hiteshmanani"
+    repo: "hiteshmanani"
     tags: [ai, azure, delivery]
 
